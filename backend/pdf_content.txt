@@ -1,0 +1,2371 @@
+Estimation of daily energy 
+requirements using a hybrid 
+artificial intelligence model
+Zeliha Uçar
+1 & Betül Çiçek
+2
+Accurately estimating energy requirements is critical for individuals to maintain a healthy life. 
+Traditional methods may be time-consuming, complex, low in accuracy, and costly, thus creating a 
+need for new approaches. This study explores the applicability of hybrid artificial intelligence models 
+for calculating daily energy requirements based on individuals’ anthropometric measurements and 
+demographic data. The study’s primary goal is to develop a model that offers a reliable and practical 
+solution with higher accuracy than existing methods while ensuring ease of use in field settings. This 
+study used data collected from volunteer individuals at Sakarya University between September 2023 
+and February 2024. Anthropometric measurements were performed by a bioelectrical impedance 
+analysis (BIA) device, and demographic data were obtained through face-to-face surveys. Eighty-seven 
+features were analyzed using the Spearman feature selection algorithm, and these were utilized to 
+estimate energy requirements. Based on collaborative hybridization, the hybrid artificial intelligence 
+model integrates three distinct Gaussian Process Regression (GPR) models using squared exponential, 
+rational quadratic, and Matern52 kernels. These models were structured based on gender, and 
+performance evaluation was carried out using criteria such as MAPE, MAD, MSE, R, and R². The best 
+model performance in males was achieved at level 10 with 100% R², while the highest accuracy in 
+females was observed at level 15. To increase model simplicity, the PCA method was applied; however, 
+a decrease in performance was detected (R = 0.48, R² = 0.23). The accuracy of the artificial intelligence 
+models proposed in this study was significantly higher than that of traditional formulas commonly 
+preferred in the current literature. Hybrid artificial intelligence models offer practicality, accuracy, 
+and flexibility in estimating energy requirements. Gender-based modeling has enhanced prediction 
+performance while providing more reliable results by accounting for individual differences. This 
+approach holds significant potential for advancing health and nutritional sciences.
+Keywords  Daily energy requirements, Hybrid artificial intelligence, Nutritional calculation, Health and 
+nutritional monitoring, AI-Assisted dietary analysis
+Energy is the capacity to perform work1,2. For both humans and animals, energy expenditure is one of the 
+fundamental characteristics3. The energy required is obtained from nutrients, which are classified as 
+carbohydrates, proteins, and fats. Humans receive these nutrients from plant- and animal-based foods in their 
+diets1,2. Factors such as gender, age, level of physical activity, body weight, and height determine the energy 
+necessary for sustaining life. The energy needed to support optimal growth and development, as well as to 
+maintain life based on these factors, is referred to as “energy requirement”2,4.
+Individuals can maintain a healthy life by balancing energy requirements and energy expenditure. Thus, 
+energy expenditure plays a crucial role in calculating energy requirements. Total energy expenditure over 24 h 
+consists of three main components: basal metabolic rate, activity-induced thermogenesis, and the thermic effect 
+of foods. Basal metabolic rate is the minimum energy expended to sustain life, accounting for approximately 
+65% of the total daily energy expenditure in sedentary individuals2,5. It is measured while the individual rests in 
+a thermoneutral environment following an overnight fast3. Activity-induced thermogenesis, also known as the 
+thermic effect of physical activity, refers to the energy required for daily tasks and bodily movement, constituting 
+about 25% of the total daily energy expenditure in sedentary individuals. Lastly, the thermic effect of foods—
+also referred to as diet-induced thermogenesis—covers the energy required for food consumption, digestion, 
+1Institute of Health Sciences, Department of Nutrition and Dietetics, Erciyes University, Kayseri, Turkey. 
+2Faculty of Health Sciences, Department of Nutrition and Dietetics, Erciyes University, Kayseri, Turkey. email: 
+zeliha.guvenc1@gmail.com
+OPEN
+Scientific Reports |        (2025) 15:38882 
+1
+| https://doi.org/10.1038/s41598-025-22786-6
+www.nature.com/scientificreports
+absorption, and metabolism. In sedentary individuals, this component represents around 10% of total daily 
+energy expenditure2,5. All these components collectively influence an individual’s energy requirement.
+Numerous equations are used to estimate energy requirements6. In addition to various influencing factors, 
+these equations consider the energy required for new tissue synthesis during growth and development periods, 
+lactation, illness, and injury, as well as the individual’s total energy expenditure over 24 h7. Furthermore, 
+body weight reflects the balance between energy intake and expenditure. Any imbalance in energy affects 
+body weight2,4. To maintain this balance, it is crucial to determine energy requirements accurately1,8. This is 
+especially important in the context of malnutrition, obesity, and diabetes, which have become global public 
+health concerns9.
+The unit used when measuring energy is the calorie. However, since the energy released during nutrient 
+metabolism is significant, kilocalorie (kcal) is used as the standard unit. There are many different methods, 
+both direct and indirect, for estimating energy requirements. These methods include direct calorimetry, indirect 
+calorimetry, respiratory quotient, and the double-labelled water method2,10. Indirect calorimetry is accepted 
+as the gold standard2,11. This method involves measuring the individual’s oxygen consumption and carbon 
+dioxide production over a specific period. The measurement uses a mask or a ventilated hood that covers the 
+mouth and nose and collects the exhaled carbon dioxide. Various software tools are available to analyze these 
+measurements, though they are often expensive. Their accuracy and reliability are very high2,11,12. This method 
+is suitable for both field and laboratory applications. Indirect calorimetry is the most commonly used method to 
+assess energy efficiency by measuring oxygen consumption. Calculations are made using an energy equivalent 
+of 5 kcal per liter of oxygen consumed by the body. It can measure oxygen consumption and calculate energy 
+expenditure under different conditions, such as resting, running, or sleeping9. Moreover, it can be conducted to 
+examine the energy requirements of individuals under different metabolic conditions or to evaluate the effects of 
+various dietary models13. However, specific protocols should be followed for these measurements to be accurate. 
+These include avoiding caffeine for at least 4 h before measurement and refraining from smoking and alcohol 
+consumption for at least 2 h beforehand12.
+The first calorimeter used for measuring energy requirements was the direct calorimeter9. These are costly 
+devices that require specialized equipment. Their operation necessitates the presence of full-time technicians. 
+Compared to indirect calorimeters, direct calorimeters provide less data. They measure the heat lost within a 
+chamber10. Due to the requirement of conducting the measurement in an enclosed space, their accuracy in 
+energy measurement is lower than that of indirect calorimeters9.
+In the double-labelled water method, individuals are given an oral dose, followed by the measurement of 
+the labelled water to estimate energy requirements. This method is suitable for use in vulnerable groups such 
+as premature infants, newborns, adolescents, pregnant and lactating women. It is a non-invasive method ideal 
+for community use, with high accuracy9,14. While the double-labelled water method can calculate total energy 
+requirements, it does not provide detailed information regarding physical activity type, intensity, or duration. 
+In this method, laboratory equipment is required to analyze biological samples, and the sample analysis process 
+is complex and costly (R = 0.85)9. In a study conducted by Wong and colleagues in 2014, the double labelled 
+water method is repeatable for measuring energy expenditure, can be used to estimate daily energy intake, and 
+is suitable for monitoring changes in body composition over a 2.5–4.4-year period14. In addition to all these 
+methods, various other approaches have recently been developed, such as accelerometers, heart rate monitors, 
+sensewear armbands, and smart devices for monitoring energy expenditure and physical activity. These are also 
+referred to as wearable devices. They are lightweight, portable technological tools. Being non-invasive, these 
+devices have recently become increasingly popular. Although their accuracy is assumed to rely on heart rate 
+monitoring and is considered lower than the devices above, their affordability and suitability for community 
+applications refer to them as a preferred option15.
+Due to the high cost, complexity, unsuitability for community use, and the burden placed on participants by 
+precise measurement devices under free-living conditions, accelerometers have been developed as an alternative 
+method. Accelerometers are produced in various types, such as single- or tri-axial models, and may be worn 
+on the hip or waist. However, these measurements may vary due to factors like age (R²=0.04–0.08)16. In a study 
+conducted in 2022 on British Army officers, energy expenditure of the individuals was measured by a wrist-worn 
+accelerometer (R = 0.8)17.
+There are many different formulas used to estimate energy expenditure6. However, their reliability is lower 
+than the measurement methods mentioned above. Nevertheless, their use is more common in the field due to 
+their affordability and practicality. These formulas first calculate basal metabolic rate, adding a physical activity 
+factor. In this way, total energy expenditure is obtained. Standard formulas include Harris-Benedict, Mifflin-
+St. Jeor and World Health Organization (WHO) equations, among others5,18,19. Harris and Benedict published 
+the first of these, including parameters such as age, body weight, height, and gender5,19. Their study involved 
+239 adults aged between 16 and 63, including 136 men and 103 women (ER = 0.8, KR = 0.6)19. New cross-
+validated equations were developed after researchers identified deviations in this formula3. Owen and colleagues 
+published two studies evaluating the requirements of men and women aged 18–65. The studies involved 60 men 
+and 44 women. Resting metabolic rate and the thermic effect of food were determined by indirect calorimetry, 
+and separate regression equations were developed for men and women20,21. In 1990, Mifflin and colleagues 
+developed a new formula through multiple regression analysis with a sample of 498 healthy individuals (247 
+women, 251 men) using indirect calorimetry (R = 0.71)18. Although many equations exist, new ones continue to 
+be developed3. One such example is the formula developed by Gerrior and colleagues in 2006, which includes 
+age, height, and body weight based on gender. A formula was created by combining basal metabolic rate with 
+the metabolic equivalent to calculate the physical activity factor. Then, grouping was made according to this 
+formula to estimate the effect of physical activity on energy expenditure, and energy requirement was calculated 
+by multiplying the two values7. In a 2022 study, the accuracy of equations used to estimate energy expenditure 
+Scientific Reports |        (2025) 15:38882 
+2
+| https://doi.org/10.1038/s41598-025-22786-6
+www.nature.com/scientificreports/
+in individuals with Down syndrome (DS) was compared, as these formulas had not been validated for this 
+population. After a 12-hour overnight fast and 48 h without aerobic exercise, energy expenditure was measured 
+via a 90-minute indirect calorimetry session. The accuracy of seven different equations was compared, and 
+the one developed by the Institute of Medicine provided the most accurate prediction for adolescents with 
+DS22. Another example involves individuals with phenylketonuria (PKU), where calculating resting energy 
+expenditure is crucial. A study was conducted to develop a formula specifically for children and adolescents with 
+PKU. Indirect calorimetry, bioelectrical impedance analysis, and anthropometric measurements were used—
+most existing equations, not specific to these individuals, overestimated resting energy expenditure. Therefore, 
+a new formula was proposed (R²=0.942)23. In a study conducted on overweight and obese individuals aged 
+20–60 years, a new equation to estimate resting energy expenditure was developed, involving 410 participants. 
+The new formula showed less deviation than existing equations, such as Mifflin-St Jeor, Owen, and Carrasco 
+(R = 0.72)24. At the Pennington Biomedical Research Center, 119 individuals were included in a study using 
+the double-labeled water method to develop tiered models for estimating energy requirements. The first model 
+included age, height, weight, and gender (R²=0.65), while the second model also incorporated body composition 
+and resting metabolic rate (R²=0.74). Models including body composition and resting metabolic rate based on 
+gender provided higher correlations25. In another study, researchers aimed to estimate energy requirements 
+in patients with chronic kidney disease, including those in stages 3–5 and those receiving renal replacement 
+therapy. Indirect calorimetry was used for validation, and BIA measurements and handgrip strength were also 
+included. Different models were developed depending on the variables involved (R²=0.44–0.46)26. Finally, in a 
+study on elderly individuals using the double-labeled water method, new predictive equations were developed to 
+estimate energy requirements (R²=0.43–0.74)27.
+Another method used to estimate energy requirements is the calculation based on energy intake. This 
+approach relies on the individual’s dietary intake records. However, since it is based on recall and self-reporting, 
+it often leads to inaccuracies in estimation2. In a study utilizing dietary intake records, Thai workers aged between 
+20 and 50 years were included. Using the 24-hour recall method, nutritional data were collected over two days. 
+The average energy intake was 1485 kcal/day for men and 1428 kcal/day for women, respectively28. In another 
+similar study conducted in China, the energy intake of children aged 6-to-17 years was calculated using the 24-
+hour recall method. A three-day record was taken, and the average intake was calculated29. As mentioned above, 
+although numerous methods are available in the literature, there remains a need for reliable, AI-based systems 
+that are practical, highly accurate, and suitable for use in field settings with the integration of newer technologies.
+Recent studies have increasingly applied machine learning (ML) and artificial intelligence (AI) methods 
+to estimate human energy requirements and metabolic rate. For example, probabilistic graphical models such 
+as bootstrap particle filters have been used to combine continuous heart rate and core body temperature data, 
+significantly improving the accuracy of metabolic rate prediction (RMSE = 133 ± 26 W)30. Smartphone sensors, 
+including heart rate monitors and inertial sensors, have also been evaluated for estimating energy expenditure 
+during daily activities and sports, showing performance comparable to or better than commercial devices such as 
+the SenseWear armband31. Neural network-based approaches have likewise been explored; for instance, models 
+developed with General Regression Neural Networks (GRNN) and Multi-Layer Perceptrons (MLP) using body 
+composition data outperformed traditional equations like Harris-Benedict and Mifflin-St Jeor, achieving higher 
+correlation (R = 0.85) and lower error (RMSE = 134.91 kcal/day)32. Other studies have integrated AI with sensor 
+systems such as Kinect cameras to estimate metabolic rate across different physical activities, offering simplified 
+alternatives to conventional measurement techniques33. Furthermore, regression-based models have been 
+embedded into web applications, enabling the prediction of total daily energy expenditure from anthropometric 
+and body composition variables without relying on physical activity level inputs34. Beyond direct estimation 
+of energy expenditure, wearable devices employing ML algorithms have also been investigated for related 
+applications such as non-invasive blood glucose forecasting in diabetes management35. These studies highlight 
+the growing role of ML and AI in improving the accuracy, accessibility, and personalization of metabolic rate 
+and energy requirement estimation.
+Recent studies have increasingly employed machine learning (ML) and artificial intelligence (AI) methods 
+to estimate human energy requirements and metabolic rate. For instance, particle filter-based probabilistic 
+graphical models have been applied using heart rate and core body temperature data, achieving high accuracy 
+in metabolic rate estimation30. Similarly, Kinect camera–based AI approaches have enabled metabolic rate 
+estimation using simple postural and activity observations33. Other studies have applied machine learning 
+models such as Random Forest, trained on motion sensor data, to predict activity-specific metabolic rate with 
+accuracies exceeding 90%36. In addition, cloud-based boosted decision tree regression has been explored for 
+energy expenditure prediction from physiological sensor data, highlighting the scalability of AI applications 
+in health monitoring37. More recently, neural network models such as General Regression Neural Networks 
+(GRNN) have been developed to predict resting metabolic rate, demonstrating superior accuracy over traditional 
+predictive equations (R = 0.85)32. In addition to model development, effective feature selection is crucial in 
+improving prediction accuracy and computational efficiency in AI-based health applications. Recent work, such 
+as the Binary Arithmetic Optimization Algorithm (BAOA) with a K-Nearest Neighbor classifier, has shown 
+strong potential to identify the most relevant variables and reduce dimensionality, which could also be valuable 
+when modeling energy requirements38. Collectively, these studies illustrate the growing role of AI and ML in 
+developing accurate, scalable, and accessible tools for energy requirement estimation.
+However, unlike traditional equations that rely on fixed parameters and linear assumptions, AI-based 
+approaches can capture complex, non-linear interactions between demographic and anthropometric variables, 
+making them more adaptable and practically valuable for diverse real-world settings.
+Although numerous methods exist for estimating energy requirements, many remain limited in accuracy, 
+practicality, or adaptability for field applications. Therefore, the development of artificial intelligence–based 
+Scientific Reports |        (2025) 15:38882 
+3
+| https://doi.org/10.1038/s41598-025-22786-6
+www.nature.com/scientificreports/
+systems has the potential to address these shortcomings by providing faster, more reliable, and more applicable 
+solutions.
+This study uses artificial intelligence based on anthropometric measurements and demographic data to 
+calculate individuals’ daily energy requirements. The proposed method provides reliable, field-applicable, 
+technician-free, fast, and highly accurate estimations. Therefore, demographic information and results from 
+bioelectrical impedance measurements—which are easy to obtain—were utilized. A feature selection algorithm 
+was applied during the analysis phase to enhance model performance. Additionally, gender-specific models were 
+developed to improve accuracy further. Since body composition differs between men and women, gender-based 
+models have the advantage of yielding better performance39. Performance evaluation criteria for the developed 
+models were calculated and compared with existing studies in the literature.
+Materials and methods
+The study was conducted in accordance with the flowchart presented in Fig. 1. In the first step, data acquisition 
+included anthropometric measurements, demographic information, and outputs obtained from bioelectrical 
+impedance analysis (BIA). Then, data preprocessing was performed, which involved handling missing values, 
+normalization, and removal of outliers. The preprocessed data were directed into two dimensionality reduction/
+feature selection pathways: Principal Component Analysis (PCA) and Spearman correlation-based feature 
+selection. The resulting feature subsets were subsequently used as inputs for three different Gaussian Process 
+Regression (GPR) models: GPR-S (Squared Exponential kernel), GPR-R (Rational Quadratic kernel), GPR-M 
+(Matern52 kernel). Finally, the outputs of these models were combined under a hybrid machine learning 
+algorithm using an ensemble averaging strategy to obtain the final prediction. Since males and females differ 
+significantly in terms of body composition40, gender-specific models were also developed in this study to 
+improve predictive accuracy and account for physiological variation.
+Data collection
+Participants
+The study was conducted on volunteers who agreed to participate within the Sakarya University campus. Data 
+collection took place between September 2023 and February 2024. The sample comprised 196 males and 289 
+females, aged 19 to 64 (Table 1). This study was conducted per the ethical standards of the institutional and/or 
+national research committee and with the 1964 Helsinki Declaration and its later amendments or comparable 
+Fig. 1.  Working flow diagram.
+ 
+Scientific Reports |        (2025) 15:38882 
+4
+| https://doi.org/10.1038/s41598-025-22786-6
+www.nature.com/scientificreports/
+ethical standards. Ethical approval was obtained from the Erciyes University Faculty of Medicine Clinical 
+Research Ethics Committee (Approval Number: 2023/424, Approval Date: 14.06.2023). Written informed 
+consent was obtained from all individual participants included in the study. Permission for data collection was 
+granted by the Rectorate of Sakarya University (Document No: E-35955870-044-268791, Date: 03.08.2023).
+Measurements
+Data were collected from individuals through questionnaire forms by face-to-face interview method, and 
+bioelectrical impedance analyses (BIA) were performed. 87 demographic and bioelectrical impedance 
+analysis (BIA)-derived variables were collected for each participant. To improve clarity and transparency, the 
+correspondence between feature numbers and their variable names is provided in Table 2. Mapping of Feature 
+Numbers to Variable Names. This table ensures that the feature numbers presented in the results (e.g., Table 2) 
+can be directly interpreted concerning their physiological or demographic meaning.
+The questionnaires included data on participants’ demographic characteristics and physical activity status. 
+Parameters obtained via BIA, such as body weight (kg), lean mass weight (kg), lean mass percentage (%), fat mass 
+(kg), fat percentage (%), body fluid weight (kg), and fluid percentage (%), were used in the analyses (Table 2).
+Bioelectrical impedance analysis (BIA) was conducted using the Tanita BC-601 Segmental Body Composition 
+Monitor (Tanita Corporation, Tokyo, Japan). This device employs an 8-electrode segmental measurement system 
+providing whole-body and regional assessments (arms, legs, trunk). It has a maximum weight capacity of 150 kg, 
+with a measurement precision of 100 g for body weight and 0.1% for body fat percentage. The device operates at a 
+frequency of 50 kHz, 500 µA, a low-level current that complies with international safety standards for biological 
+measurements. The BC-601 also allows storage and transfer of results via SD card and proprietary software. 
+Calibration was performed automatically per the manufacturer’s guidelines before each measurement session. 
+The validity and reliability of this model have been confirmed in previous clinical studies, and it is widely used 
+in research settings for body composition analysis.
+Energy requirement calculation
+Energy requirements were calculated based on age, height, and gender using the formula established by the 
+World Health Organization (WHO) (Eqs. 1 and 2). In this formula, the constant value is accepted as 1 for males 
+(Eqs. 1) and 0.95 for females (Eq. 2)41. The authors do not select these constants, but are predefined in the 
+WHO guidelines to account for metabolic differences between males and females. Physical activity level (PAL) 
+is a fixed coefficient that ranges between 1 and 2.5 depending on the daily activity level of the individual, and 
+is incorporated into the Eqs7,41. PAL values of 1–1.39 are used for sedentary activity levels, 1.4–1.59 for light 
+activity, 1.6–1.89 for moderate activity, and 1.9–2.5 for high physical activity levels, respectively41.
+	
+BMR (male) : body weight (kg) x constant (1 kcal/kg) x 24
+(1)
+	
+BMR (female) : body weight (kg) x constant (0,95 kcal/kg) x 24
+(2)
+Spearman feature selection algorithm
+Table 3 presents the number of selected features by gender at different percentage levels using the Spearman 
+feature selection algorithm. The selected features are grouped progressively as 5%, 10%, 15%, and so on, up to 
+100%. Each level represents a specific proportion of the total features selected, and these selections are made to 
+reduce model complexity and optimize performance. The table provides a comparative overview of the number 
+of features selected for males (M), females (F) and total (T). The findings indicate that the number of selected 
+features at each level is similar, mainly between males and females. This suggests that similar features may be 
+equally crucial for model performance in both genders. Notably, at higher levels (80–100%), a more significant 
+number of features were selected for all individuals, indicating that the model operates at its highest level of 
+complexity and utilizes all available features. These results demonstrate that the AI-based model may produce 
+more accurate and reliable estimates of energy requirements by accounting for gender-specific differences. In 
+Parametre
+Age
+Body weight
+Height
+BMI
+FM kg
+FM %
+TBW %
+BMR (WHO)
+Male
+(n = 196)
+Min
+19
+51.2
+155
+17
+41.37
+5
+43.8
+1662.96
+Max
+64
+143
+198
+46.2
+90.52
+41
+75.8
+5567.76
+Mean
+25.87
+78.41
+175.26
+25.55
+63.14
+18.33
+58.86
+2789.96
+Std
+9.40
+15.62
+7.32
+4.78
+8.54
+7.44
+5.96
+659.81
+Female
+(n = 289)
+Min
+19
+42.5
+146
+16.1
+33.77
+13.8
+32
+1259.7
+Max
+60
+121.7
+180
+47.5
+66.45
+58
+63.2
+4213.44
+Mean
+28.35
+67.70
+162.09
+25.80
+44.74
+32.26
+50.33
+2172.78
+Std
+9.93
+15.11
+6.27
+5.74
+5.25
+8.53
+5.97
+580.75
+Total
+(n = 485)
+Min
+19
+42.5
+146
+16.1
+33.77
+5
+32
+1259.7
+Max
+64
+143
+198
+47.5
+90.52
+58
+75.8
+5567.76
+Mean
+27.35
+72.03
+167.41
+25.70
+52.17
+26.63
+53.78
+2422.20
+Std
+9.80
+16.19
+9.32
+5.37
+11.29
+10.60
+7.29
+684.57
+Table 1.  Distribution of data. FM: Fat-free Mass, TBW: Total Body Water.
+ 
+Scientific Reports |        (2025) 15:38882 
+5
+| https://doi.org/10.1038/s41598-025-22786-6
+www.nature.com/scientificreports/
+this study, the term level refers explicitly to the feature subsets generated by the Spearman method. Each level 
+corresponds to a different combination of the original input variables, starting from the most strongly correlated 
+feature (Level 1) to the complete feature set (Level 20). Levels do not introduce new models, weights, or data; 
+they define which subset of features is used for model training.
+Machine learning
+This study’s most successful machine learning models included Gaussian process regression (GPR) with squared-
+exponential, rational-quadratic, and Matern52 kernels and a hybrid algorithm.
+GPR model
+Gaussian process regression (GPR) models are flexible, robust, and non-parametric. They are preferred in high-
+dimensional, small-sample, or non-linear datasets42. GPR works by learning non-linear mappings through 
+kernel functions, constructing a covariance matrix between input features and real-valued outputs. In this way, 
+it provides Gaussian uncertainty estimates for predictions, which enables integration into predictive control, 
+adaptive control, and Bayesian filtering techniques43.
+GPR is simpler compared to neural networks and support vector machines. It possesses non-parametric 
+flexibility and may self-adjust its hyperparameters43. However, some recent approaches—such as the variance-
+adjusted gradient boosting algorithm—have enhanced the performance of GPR, making it comparable to or 
+even superior to other regression methods like random forests and gradient boosting machines42.
+GPR models are commonly used to fit data when the regression function is unknown44. For instance, they are 
+widely utilized in system modeling, forecasting, control techniques, and industrial processes43,45,46. Additionally, 
+GPR has been applied in diverse areas as estimating unknown functions, modeling and forecasting human 
+mortality rates, and predicting the safety margin of a nuclear power plant46.
+GPR models may not be effectively used with large datasets due to their high computational complexity. 
+They scale cubically with the number of observations, restricting their use to small- and medium-sized datasets. 
+Consequently, GPR models are powerful tools for probabilistic regression however, their applicability to large-
+scale data remains limited47.
+No
+Column Information
+No
+Column Information
+No
+Column Information
+1
+Gender
+31
+Fluid Mass Max (kg)
+61
+Soft Lean Mass
+2
+Age
+32
+Fluid Mass (%)
+62
+Soft Lean Mass (%)
+3
+Weight
+33
+Fluid Mass Min (%)
+63
+Skeletal Muscles
+4
+Height
+34
+Fluid Mass Max (%)
+64
+Skeletal Muscle (%)
+5
+Body Mass Index (BMI)
+35
+Obesity Degree (%)
+65
+Organ Muscle Mass
+6
+Minimum BMI
+36
+Protein Mass (kg)
+66
+Organ Muscle Mass (%)
+7
+Maximum BMI
+37
+Protein Mass Min (kg)
+67
+Segmental Trunk Muscle Mass (kg)
+8
+Ideal weight (kg)
+38
+Protein Mass Max (kg)
+68
+Segmental Trunk Fat Mass (kg)
+9
+Minimum ideal weight
+39
+Protein Mass (%)
+69
+Segmental Trunk Lean Mass (kg)
+10
+Maximum ideal weight
+40
+Protein Mass Min (%)
+70
+Segmental Right Arm Muscle Mass (kg)
+11
+Lean mass (kg)
+41
+Protein Mass Max (%)
+71
+Segmental Right Arm Fat Mass (kg)
+12
+Minimum lean mass (kg)
+42
+Mineral Mass (kg)
+72
+Segmental Right Arm Lean Mass (kg)
+13
+Maximum lean mass (kg)
+43
+Mineral Mass Min (kg)
+73
+Segmental Right Leg Muscle Mass (kg)
+14
+Lean mass (%)
+44
+Mineral Mass Max (kg)
+74
+Segmental Right Leg Fat Mass (kg)
+15
+Minimum lean mass (%)
+45
+Mineral Mass (%)
+75
+Segmental Right Leg Lean Mass (kg)
+16
+Maximum lean mass (%)
+46
+Mineral Mass Min (%)
+76
+Segmental Right Leg Fat Percentage (%)
+17
+Muscle mass (kg)
+47
+Mineral Mass Max (%)
+77
+Segmental Left Leg Fat Percentage (%)
+18
+Minimum muscle mass (kg)
+48
+Metabolic Age
+78
+Segmental Right Arm Fat Percentage (%)
+19
+Maximum muscle mass (kg)
+49
+Basal Metabolic Rate (kcal)
+79
+Segmental Left Arm Fat Percentage (%)
+20
+Muscle mass (%)
+50
+Basal Metabolic Rate Min (kcal)
+80
+Segmental Trunk Fat Percentage (%)
+21
+Minimum muscle mass (%)
+51
+Basal Metabolic Rate Max (kcal)
+81
+Segmental Left Leg Fat Mass (kg)
+22
+Maximum muscle mass (%)
+52
+Basal Metabolic Rate (kJ)
+82
+Segmental Left Arm Fat Mass (kg)
+23
+Fat mass (kg)
+53
+Basal Metabolic Rate Min (kJ)
+83
+Segmental Left Leg Muscle Mass (kg)
+24
+Fat Mass Min (kg)
+54
+Basal Metabolic Rate Max (kJ)
+84
+Segmental Left Arm Muscle Mass (kg)
+25
+Fat Mass Max (kg)
+55
+Body Density
+85
+Segmental Left Leg Lean Mass (kg)
+26
+Fat Mass (%)
+56
+Body Density Min
+86
+Segmental Left Arm Lean Mass (kg)
+27
+Fat Mass Min (%)
+57
+Body Density Max
+87
+PAL
+28
+Fat Mass Max (%)
+58
+Visceral Fat
+88
+WHO
+29
+Fluid Mass (kg)
+59
+Visceral Fat Min
+30
+Fluid Mass Min (kg)
+60
+Visceral Fat Max
+Table 2.  Mapping of feature numbers to variable Names.
+ 
+Scientific Reports |        (2025) 15:38882 
+6
+| https://doi.org/10.1038/s41598-025-22786-6
+www.nature.com/scientificreports/
+GPR squared exponential (GPRS), GPR rational quadratic (GPRR), and GPR matern52 (GPRM) are different 
+kernel functions used within the GPR framework. Each function has distinct characteristics that influence the 
+behavior and performance of the GPR model.
+To enhance model performance, hyperparameters of the Gaussian Process Regression (GPR) models (e.g., 
+kernel length-scale and variance) were optimized using automated search strategies. These strategies included 
+Bayesian optimization and randomized/grid search techniques, which iteratively adjust parameter values to 
+minimize prediction error based on log-marginal likelihood. This process ensured that the selected kernel 
+configurations provided the best trade-off between model accuracy and generalizability.
+GPR squared exponential
+GPR squared exponential (GPRS), also known as the Radial Basis Function (RBF), operates assuming the 
+modeled function is smooth and continuous. Its flexibility and smoothness contribute to its frequent use. It is an 
+effective method for capturing complex data relationships48.
+GPR rational quadratic
+It is a mixture of GPRS functions with different length scales. Compared to GPRS, it is more flexible and capable 
+of producing models with varying degrees of smoothness3. This kernel is particularly used when the data exhibit 
+different levels of variability45.
+GPR matern52
+It is smoother than the GPRS kernel. However, it behaves more flexibly when constructing rougher models. 
+It provides a good balance between flexibility and smoothness. It is frequently preferred in cases where the 
+underlying function is less smooth47.
+Hybrid machine learning algorithm
+It is a combination of different algorithms aimed at solving complex problems. By integrating the advantages 
+of multiple algorithms, it seeks to create a more powerful solution method49,50. There are two distinct types of 
+hybridization: collaborative and integrative. Collaborative hybridization approaches the problem by applying the 
+algorithms sequentially or in parallel, allowing for information exchange. Integrative hybridization, on the other 
+hand, focuses on different aspects of the problem-solving process for each algorithm51.
+Hybrid algorithms enable more efficient and effective outcomes by combining various techniques. 
+They improve exploration strategies and enhance solution quality52. They exhibit better performance than 
+conventional algorithms, particularly in solving non-deterministic polynomial-time challenging optimization 
+problems, thereby generating a synergistic effect53. These algorithms have been successfully applied to real-
+world problems52,53. In summary, hybrid algorithms combine the strengths of different approaches to offer more 
+balanced and practical solutions, leading to successful implementations.
+In the present study, the hybrid approach integrates three Gaussian Process Regression (GPR) models 
+with different kernels (squared exponential, rational quadratic, and Matern52). Each model was trained 
+independently, and their prediction outputs were combined by taking the simple arithmetic mean (unweighted 
+Level
+Percentage Value
+M
+F
+T
+1
+5
+4
+4
+4
+2
+10
+9
+9
+9
+3
+15
+13
+13
+13
+4
+20
+17
+17
+17
+5
+25
+22
+22
+22
+6
+30
+26
+26
+26
+7
+35
+30
+30
+30
+8
+40
+35
+35
+35
+9
+45
+39
+39
+39
+10
+50
+44
+44
+44
+11
+55
+48
+48
+48
+12
+60
+52
+52
+52
+13
+65
+57
+57
+57
+14
+70
+61
+61
+61
+15
+75
+65
+65
+65
+16
+80
+70
+70
+70
+17
+85
+74
+74
+74
+18
+90
+78
+78
+78
+19
+95
+83
+83
+83
+20
+100
+87
+87
+87
+Table 3.  Variation in feature selection levels and number of selected features by Gender.
+ 
+Scientific Reports |        (2025) 15:38882 
+7
+| https://doi.org/10.1038/s41598-025-22786-6
+www.nature.com/scientificreports/
+average) to obtain the final estimate. No specific weights were applied to individual models. This averaging 
+strategy corresponds to a collaborative hybridization, as parallel models contribute to a consensus result. The 
+rationale for this design is that each kernel captures different structural characteristics of the data, and combining 
+them reduces variance, balances individual weaknesses, and improves the overall robustness of the predictions.
+Performance evaluation criterion
+In machine learning models, performance evaluation criteria (PEC) are essential for selecting the appropriate 
+model for a given task. Depending on the characteristics of the model and user expectations, various experiments 
+may be designed to assess performance. Techniques such as cross-validation and bootstrapping may be used 
+for performance evaluation in supervised and unsupervised models54. In addition, metrics like accuracy, 
+precision, recall, F1 score, and area under the ROC curve are key indicators for assessing model performance55. 
+In supervised learning, models are trained with input data and target variables. In unsupervised learning, only 
+input data is used, and the algorithm attempts to identify patterns within the data56. In the current study, to 
+evaluate the results, the following metrics were employed: Mean Absolute Percentage Error (MAPE), Mean 
+Absolute Deviation (MAD), Standard Error (SE), Mean Squared Error (MSE), Root Mean Squared Error 
+(RMSE), R, and R² (Eqs. 1–5).
+MAPE provides a mapping procedure based on measurable criteria and allows for a visual presentation of 
+the results57. It is used in research and development organizations to evaluate performance against specified 
+targets58,59. MAPE is calculated by averaging the absolute percentage errors between predicted and actual values. 
+It is a simple and easily interpretable method; however, it is sensitive to outliers and unsuitable for cases where 
+exact values are zero or near zero60.
+MAD is a method that estimates dispersion for continuous and finite-valued random variables without 
+relying on absolute values61. It is especially appropriate when data are skewed and is easy to apply and interpret62.
+MSE measures the average of the squared errors or deviations and provides detailed insights into model 
+performance63–65. SE measures the accuracy of predictions and indicates the precision of the estimates66.
+R² shows the proportion of variance in the dependent variable that the independent variables can explain. 
+However, when used alone as a PEC, it may be insufficient, as it does not indicate which aspects of model 
+performance are strong or weak67–69. Among the PECs used in this study, values of MAPE, MAD, SE, MSE, and 
+RMSE are expected to be close to 0, while R and R² are expected to be close to 1.
+In addition to the classical error-based metrics (MAPE, MAD, SE, MSE, RMSE, R, and R²), computational 
+efficiency indicators were also considered: Prediction Speed (PS) expressed as observations predicted per 
+second, Training Time (TT) measured in seconds required for model training, and Model Size (MS) measured in 
+kilobytes. These parameters provide practical insights into the computational cost and feasibility of the models, 
+which are critical for clinical and field applications.
+In the equations, n represents the total number of data points, t denotes the actual value for each individual, 
+and y denotes the calculated value.
+	
+MAPE = 1
+n
+n
+∑
+i=1
+|ti −yi|
+ti
+× 100
+(1)
+	
+MAD = 1
+n
+n
+∑
+i=1
+|ti −yi|
+(2)
+	
+SH =
+
+
+
+
+n
+i=1
+(ti −yi)2
+n −2
+=
+
+
+
+
+n
+i=1
+ei2
+n −2
+
+(3)
+	
+MSE = 1
+n
+n
+∑
+i=1
+ei
+2
+(4)
+	
+RMSE =
+
+
+
+ 1
+n
+n
+
+i=1
+ei2
+(5)
+For testing model performance, the dataset was split into 80% for training and 20% for testing. The training 
+set was used to enable the models to learn, while the test set was reserved to measure the generalizability of 
+performance. During the modeling process, different algorithms were applied, and gender-based models were 
+utilized to enhance performance. Feature selection techniques were employed to achieve higher accuracy with 
+fewer but more effective inputs.
+Model variations
+Various combinations of gender, feature groups, and AI models were used to develop a total of 240 predictive 
+models in this study. Table 4 summarizes how these model variations were structured. It shows the distribution 
+of 3 gender categories (male, female, and total), 20 different feature groups (see Table 3), and 4 AI model types 
+(GPR-M, GPR-R, GPR-S, and a hybrid model). The resulting combinations outline the whole architecture of 
+Scientific Reports |        (2025) 15:38882 
+8
+| https://doi.org/10.1038/s41598-025-22786-6
+www.nature.com/scientificreports/
+the modeling strategy. 240 models (3 genders × 20 feature levels × 4 AI models) were structured to represent 
+different input–algorithm configurations.
+k-fold cross-validation
+To ensure the robustness and generalizability of the developed models, k-fold cross-validation was employed. 
+This approach randomly partitioned the dataset into k equally sized folds. At each iteration, one fold was used 
+as the validation set, while the remaining k-1 folds were used for training. This process was repeated k times so 
+that each fold was used once for validation. The final performance metrics were obtained by averaging the results 
+across all folds. This procedure reduces the risk of overfitting and provides a more reliable estimate of model 
+performance, particularly when working with relatively small datasets. This study set k to 10, a commonly used 
+choice in the literature for balancing computational efficiency and statistical reliability.
+Principal component analysis (PCA)
+Strong correlations among high-dimensional datasets may increase model complexity and reduce predictive 
+accuracy. For this reason, dimensionality reduction methods are frequently employed in AI-based modeling 
+studies to maintain model simplicity while enhancing generalizability. Principal Component Analysis (PCA) 
+is a statistical technique that represents correlated variables with fewer independent components, thereby 
+eliminating redundancies in the data while preserving information content70,71.
+This study applied PCA directly to the dataset and subsequently integrated into the AI-based modeling 
+process. PCA was used independently as an alternative dimensionality reduction method, rather than in 
+conjunction with Spearman-based feature selection.
+Computational platform
+All computational analyses were conducted using MATLAB R2024b (MathWorks Inc., Natick, MA, USA). 
+Standard toolboxes such as the Statistics and Machine Learning Toolbox were utilized where available, while 
+all remaining procedures—including feature selection implementation, hybrid model construction, and 
+performance evaluation—were coded manually by the authors. This ensured flexibility in model development 
+and allowed adaptation of the algorithms to the specific requirements of the study.
+Results
+This study aimed to estimate individuals’ energy requirements using artificial intelligence-based models 
+developed with demographic information and bioelectrical impedance analysis (BIA) measurements. Eighty-
+seven distinct features were obtained from the demographic data and BIA assessments. The data collected from 
+individuals was utilized to train artificial intelligence models. Separate models were also developed to enhance 
+model performance for male and female participants. Furthermore, feature selection algorithms and Principal 
+Component Analysis (PCA) were applied to improve model performance.
+Table 3 presents the Spearman correlation coefficients (R values) of the selected features based on gender. It 
+evaluates the strength and direction of the relationship between each feature and basal metabolic rate (BMR). 
+The findings reveal notable gender-based differences in correlation for certain features. For instance, Feature 
+30 showed a strong and similar positive correlation for both males (M R = 0.73) and females (F R = 0.89), while 
+for Feature 3 (M R = 0.73 and F R = 0.89), the difference was more apparent. This emphasizes that gender plays a 
+significant role in feature selection. The correlation values calculated for all individuals were generally close to 
+the average of gender-specific values (Table 5). This suggests that correlations are consistent across many features 
+and indicates the requirement to develop general and gender-specific models. The variation of features by gender 
+demonstrates the necessity of optimizing the model accordingly. Considering these differences is crucial for 
+improving model performance and contributes to more accurate and reliable predictions in energy requirement 
+estimation.
+Eighty-seven features were grouped into 20 datasets by the Spearman feature selection algorithm (Table 3). 
+This process was repeated for males, females, and all individuals. Based on the 20 datasets generated for male 
+individuals, GPR-M, GPR-R, GPR-S, and Hybrid artificial intelligence-based models were developed (SI Table 1, 
+SI Table 2, SI Table 3, SI Table 4). All models were restructured for female individuals (SI Table 5, SI Table 6, SI 
+Table 7, SI Table 8). For all individuals, models were constructed using the same structure (SI Table 9, SI Table 10, 
+SI Table 11, SI Table 12). In addition, PCA was applied to enhance model performance, and new models were 
+developed accordingly (Table 6). Each table highlights The most effective results in bold and/or italics.
+In the models developed for males, when the feature selection level reached 10, model performance 
+attained the maximum level (R = 1 and R2 = 1) (SI Table 1, SI Table 2, SI Table 3,SI Table 4). After level 10, 
+Gender
+Feature Group (Level)
+AI Models
+Variation Model
+3
+20
+4
+3 × 20 × 4 = 240
+M
+Levels 1–20: input combinations.
+GPR-M
+Total: 3 × 20 × 4 = 240 models.
+F
+GPR-R
+T
+GPR-S
+-
+Hybrid
+Table 4.  Architecture of AI model variations by Gender, feature Group, and algorithm Type. M Male, F 
+Female, T Total.
+ 
+Scientific Reports |        (2025) 15:38882 
+9
+| https://doi.org/10.1038/s41598-025-22786-6
+www.nature.com/scientificreports/
+model performance remained approximately stable or exhibited only minor decreases (MSE > 13.94). Five new 
+features were added when transitioning from level 9 to level 10, resulting in improved performance (Table 3). 
+The increase in performance may be explained by the strong influence of the five added features in the Basal 
+Metabolic Rate (BMR) prediction.
+In the models developed for females, when the feature selection level reached 15, model performance 
+attained the maximum level (R = 1 and R2 = 1) (SI Table 5, SI Table 6, SI Table 7, SI Table 8). After level 15, model 
+performance remained stable or exhibited only minor decreases (MSE > 13.40). Four new features were added 
+when transitioning from level 14 to level 15, resulting in improved performance (Table 3). The performance 
+increase can be explained by the strong influence of these four added features in BMR estimation.
+In the models developed for all individuals, when the feature selection level reached 11, model performance 
+attained the maximum level (R = 1 and R2 = 1) (SI Table 9, SI Table 10, SI Table 11, SI Table 12). After level 11, 
+performance remained stable or showed only minor decreases (MSE > 22.58). Four new features were added 
+when transitioning from level 10 to level 11, resulting in improved performance (Table 3). The performance 
+increase can be explained by the strong influence of these four added features in BMR estimation.
+An increase in model performance was targeted through PCA; however, a performance decrease (R = 0.48 
+and R2 = 0.23) was observed (Table 6). PCA is a technique used for dimensionality reduction, and it simplifies the 
+model while improving computational efficiency by reducing the number of variables in the dataset. However, the 
+G
+Model
+TB
+PCA E
+MAPE
+MAD
+SH
+MSE
+RMSE
+R
+R2
+PS
+TT
+MS
+M
+GPR-M
+2
+97.02
+13.93
+380.35
+463.53
+203,841.33
+451.49
+0.66
+0.43
+677,190
+0.0548
+225.0703
+GPR-R
+13.92
+380.04
+465.61
+205,677.18
+453.52
+0.66
+0.43
+605,610
+0.1689
+225.1406
+GPR-S
+13.92
+380.04
+465.61
+205,677.17
+453.52
+0.66
+0.43
+758,330
+0.2700
+225.1094
+F
+GPR-M
+3
+98.84
+18.27
+374.40
+436.37
+183,740.31
+428.65
+0.49
+0.24
+629,720
+0.0725
+462.6328
+GPR-R
+18.30
+375.44
+437.11
+184,363.50
+429.38
+0.48
+0.23
+577,130
+0.0548
+462.7031
+GPR-S
+18.32
+375.72
+436.02
+183,446.50
+428.31
+0.49
+0.24
+798,990
+0.0263
+462.6719
+T
+GPR-M
+3
+98.84
+18.27
+374.40
+436.37
+183,740.31
+428.65
+0.49
+0.24
+629,490
+0.0292
+462.6328
+GPR-R
+18.30
+375.44
+437.11
+184,363.50
+429.38
+0.48
+0.23
+513,250
+0.0574
+462.7031
+GPR-S
+18.32
+375.72
+436.02
+183,446.50
+428.31
+0.49
+0.24
+729,440
+0.0268
+462.6719
+Table 6.  Model performance for Males, Females, and all individuals with applied PCA Analysis. G Gender, M 
+Male, F Female, PC Principal Component, PCA E PCA Explained, PS Prediction Speed obs/sec, TT Training 
+Time sec, MS Model Size kB.
+ 
+FN
+M R
+F R
+AI R
+FN
+M R
+F R
+AI R
+FN
+M R
+F R
+AI R
+FN
+M R
+F R
+AI R
+30
+0.73
+0.89
+0.88
+67
+0.70
+0.71
+0.77
+33
+0.07
+0.18
+0.42
+57
+0.20
+0.46
+0.20
+31
+0.73
+0.89
+0.88
+83
+0.71
+0.75
+0.76
+23
+0.55
+0.86
+0.41
+46
+0.18
+0.34
+0.19
+13
+0.72
+0.88
+0.87
+85
+0.71
+0.75
+0.76
+48
+0.30
+0.70
+0.37
+81
+0.55
+0.86
+0.18
+12
+0.73
+0.87
+0.87
+73
+0.69
+0.74
+0.75
+34
+0.01
+0.10
+0.30
+74
+0.55
+0.86
+0.17
+19
+0.72
+0.88
+0.87
+75
+0.69
+0.74
+0.75
+80
+0.42
+0.77
+0.29
+40
+0.18
+0.42
+0.17
+38
+0.72
+0.87
+0.87
+42
+0.56
+0.65
+0.72
+6
+0.16
+0.53
+0.28
+45
+0.35
+0.69
+0.13
+18
+0.72
+0.87
+0.87
+36
+0.67
+0.52
+0.69
+2
+0.14
+0.46
+0.27
+14
+0.44
+0.79
+0.12
+3
+0.73
+0.89
+0.86
+5
+0.59
+0.83
+0.66
+21
+0.07
+0.36
+0.26
+55
+0.44
+0.79
+0.12
+37
+0.72
+0.85
+0.86
+35
+0.59
+0.80
+0.66
+50
+0.24
+0.49
+0.26
+64
+0.44
+0.79
+0.12
+43
+0.68
+0.80
+0.81
+9
+0.43
+0.45
+0.61
+53
+0.24
+0.49
+0.26
+26
+0.44
+0.79
+0.12
+44
+0.66
+0.80
+0.80
+58
+0.50
+0.81
+0.61
+51
+0.24
+0.49
+0.26
+20
+0.43
+0.79
+0.12
+86
+0.65
+0.87
+0.80
+52
+0.70
+0.48
+0.61
+54
+0.24
+0.49
+0.26
+62
+0.44
+0.79
+0.12
+84
+0.65
+0.87
+0.80
+49
+0.70
+0.48
+0.61
+24
+0.65
+0.87
+0.26
+66
+0.41
+0.76
+0.12
+29
+0.71
+0.79
+0.79
+8
+0.42
+0.43
+0.61
+7
+0.15
+0.49
+0.25
+39
+0.05
+0.68
+0.09
+63
+0.73
+0.77
+0.79
+10
+0.42
+0.41
+0.60
+22
+0.07
+0.36
+0.24
+78
+0.43
+0.76
+0.05
+11
+0.73
+0.77
+0.79
+25
+0.69
+0.88
+0.56
+41
+0.20
+0.44
+0.22
+77
+0.44
+0.79
+0.05
+61
+0.73
+0.77
+0.78
+68
+0.53
+0.84
+0.52
+28
+0.20
+0.46
+0.21
+76
+0.44
+0.78
+0.05
+17
+0.73
+0.77
+0.78
+87
+0.48
+0.47
+0.49
+56
+0.20
+0.46
+0.21
+79
+0.36
+0.77
+0.05
+70
+0.64
+0.84
+0.78
+4
+0.34
+0.13
+0.47
+32
+0.47
+0.81
+0.21
+47
+0.14
+0.35
+0.03
+72
+0.64
+0.84
+0.78
+1
+0.00
+0.00
+0.47
+15
+0.20
+0.42
+0.21
+59
+0.00
+0.00
+0.00
+65
+0.72
+0.74
+0.77
+71
+0.59
+0.85
+0.47
+16
+0.21
+0.37
+0.21
+60
+0.00
+0.00
+0.00
+69
+0.70
+0.71
+0.77
+82
+0.52
+0.85
+0.44
+27
+0.20
+0.46
+0.20
+Table 5.  Gender-Specific R values of the Features. AI R All Individuals R, M R Male R, F R Female R, FN 
+Feature Number, Sorted from top to bottom and left to right according to the R values of all individuals.
+ 
+Scientific Reports |        (2025) 15:38882 
+10
+| https://doi.org/10.1038/s41598-025-22786-6
+www.nature.com/scientificreports/
+performance decrease observed with PCA may be attributed to the loss of important information, the inability 
+to model non-linear relationships, and excessive model simplification. Although PCA reduced model size and 
+provided competitive prediction speeds, the increase in training time (TT) and reduction in accuracy metrics 
+indicate that its overall contribution was unfavorable compared to the original feature selection approach.
+The models proposed in this study demonstrate significant improvements compared to the BMR estimation 
+methods commonly used in the literature (Table 7). In this study, using the same dataset, models were created 
+based on the WHO, Harris-Benedict, Schofield, Mifflin, and Owen formulas, which are commonly used for BMR 
+estimation in the literature, and their performances were calculated. While the performance of the literature-
+based methods ranged between 0.77 < R²<0.84, the performance of the AI-based models proposed in this study 
+was R = 1. For literature-based methods, SH > 312, whereas for the artificial intelligence models proposed in this 
+study, SH < 4.93. MAPE > 9.53 for the AI-based models proposed in this study, and MAPE < 0.11 for literature 
+models. These performance values demonstrate that the artificial intelligence-based models proposed in this 
+study exhibit significantly higher performance than those in the current literature. In addition to accuracy 
+improvements, the AI-based models maintained high prediction speeds (PS), relatively low training times (TT), 
+and manageable model sizes (MS), confirming that they are not only more accurate but also computationally 
+efficient compared to traditional equations.
+To provide a more straightforward overview of how model performance evolved with the number of features, 
+Fig. 2 illustrates the variation of key performance metrics (MAPE, MAD, SE, MSE, RMSE, and R) across feature 
+levels for the Total dataset using GPR-S and Hybrid models. Predictive accuracy improved with additional 
+features, reaching an optimal level after approximately 50% of the features were included. The GPR-S model 
+exhibited consistent improvements with moderate feature sets, whereas the Hybrid model demonstrated a 
+sharp transition to near-perfect accuracy once a critical threshold was surpassed. These findings confirm the 
+importance of appropriate feature selection in achieving high accuracy and computational efficiency.
+Table 8 presents the 10-fold cross-validation (k = 10) results for GPR-M, GPR-R, and GPR-S models. For 
+optimal performance, feature levels were set to 10 for males, 15 for females, and 11 for the combined dataset. The 
+table reports error metrics (MAPE, MAD, MSE, RMSE), accuracy coefficients (R, R²), and computational costs 
+(prediction speed [PS], training time [TT], model size [MS]) for each configuration. The findings demonstrate 
+that all models achieved perfect accuracy (R = 1, R² = 1), indicating strong predictive consistency. Moreover, the 
+observed prediction speeds and training times confirm that the developed models are computationally efficient 
+and feasible for practical use in clinical and field applications.
+Figure 3 presents a scatter plot comparing actual and predicted BMR values for the best-performing GPR-M 
+model (total dataset, 10-fold cross-validation) to illustrate the model’s predictive capability further. The data 
+points align almost perfectly with the reference line, confirming that the predictions closely matched the actual 
+BMR values across the entire range.
+Discussion
+The calculation of daily energy requirement is one of the fundamental assessments used in the field of nutrition 
+and dietetics. Separate calculations are performed for individuals with special needs, such as athletes, laborers, 
+and newborns. Therefore, various methods have been developed to ensure accurate estimations for each 
+individual. Various direct and indirect methods are used to calculate daily energy requirements. However, these 
+methods are generally expensive, time-consuming, and unsuitable for field use2,10. Therefore, various methods 
+have been developed for field use, including practical formulas, accelerometers, heart rate monitors, Sensewear 
+G
+L
+Model
+Performance Evaluation Criteria
+MAPE
+MAD
+SH
+MSE
+RMSE
+R
+R2
+PS
+TT
+MS
+M
+10
+GPR-M
+0.11
+3.09
+6.20
+36.48
+6.04
+1.00
+1.00
+477,220
+0.0382
+384.3516
+M
+10
+GPR-R
+0.08
+2.11
+3.83
+13.94
+3.73
+1.00
+1.00
+468,120
+0.0583
+384.4219
+M
+10
+GPR-S
+0.08
+2.11
+3.83
+13.94
+3.73
+1.00
+1.00
+586,930
+0.0253
+384.3906
+M
+10
+Hybrid
+0.08
+2.36
+4.58
+19.94
+4.47
+1.00
+1.00
+168,479
+0.1218
+1,153.1641
+F
+15
+GPR-M
+0.07
+1.87
+4.25
+17.39
+4.17
+1.00
+1.00
+520,740
+0.0576
+806.7422
+F
+15
+GPR-R
+0.08
+1.97
+3.73
+13.40
+3.66
+1.00
+1.00
+474,190
+0.1511
+806.8125
+F
+15
+GPR-S
+0.08
+1.97
+3.73
+13.40
+3.66
+1.00
+1.00
+640,080
+0.0510
+506.7813
+F
+15
+Hybrid
+0.08
+1.92
+3.81
+14.00
+3.74
+1.00
+1.00
+178,843
+0.2597
+2,120.3360
+T
+11
+GPR-M
+0.08
+1.98
+5.24
+26.93
+5.19
+1.00
+1.00
+356,800
+0.1943
+1,650.0000
+T
+11
+GPR-R
+0.07
+1.80
+4.80
+22.58
+4.75
+1.00
+1.00
+289,590
+0.4696
+1,650.1000
+T
+11
+GPR-S
+0.07
+1.80
+4.80
+22.58
+4.75
+1.00
+1.00
+469,260
+0.1736
+1,650.1000
+T
+11
+Hybrid
+0.07
+1.83
+4.93
+23.84
+4.88
+1.00
+1.00
+119,234
+0.8375
+4,950.2000
+T
+FG
+Harris-Benedict
+9.53
+232.49
+312.11
+97008.53
+311.46
+0.91
+0.83
+-
+-
+-
+T
+FG
+Scholfield
+8.10
+211.11
+314.10
+98252.56
+313.45
+0.92
+0.84
+-
+-
+-
+T
+FG
+Mifflin
+10.67
+279.09
+381.63
+145037.75
+380.84
+0.89
+0.80
+-
+-
+-
+T
+FG
+Owen
+14.77
+384.69
+505.50
+254477.84
+504.46
+0.88
+0.77
+-
+-
+-
+Table 7.  Summary table with comparative analysis of the Literature. G Gender, M Male, F Female, L Level, FG 
+Formula Group, PS Prediction Speed obs/sec, TT Training Time sec, MS Model Size kB.
+ 
+Scientific Reports |        (2025) 15:38882 
+11
+| https://doi.org/10.1038/s41598-025-22786-6
+www.nature.com/scientificreports/
+armbands, and smart devices designed to track energy expenditure and physical activity. However, although 
+these methods and formulas are more convenient for field application, they tend to be less reliable6,15. Therefore, 
+there is a growing need for new methods that are practical, highly reliable, and suitable for field use.
+In the results section of this study, an artificial intelligence-based prediction model for estimating energy 
+requirements is proposed for all individuals and by gender. In this section, the proposed models will be discussed 
+about existing studies in the literature. In this study, an artificial intelligence-based model was developed to 
+estimate individuals’ daily energy requirements based on anthropometric measurements and demographic data. 
+The results indicate that the developed model successfully predicts energy requirements. The models developed 
+specifically for males demonstrated exceptionally high performance (R = 1 and R²=1). Similarly, the models 
+developed for females also exhibited high performance (R = 1 and R²=1). These results demonstrate that the 
+developed model is a reliable and accurate tool for predicting energy requirements. Furthermore, these results 
+are consistent with previous studies in literature. For example, Mifflin et al. (1990) developed an equation to 
+estimate healthy individuals’ resting energy expenditure (REE). The equation developed by Mifflin et al. (1990) 
+demonstrates a similarly high level of accuracy as the model proposed in this study18. However, in the study by 
+Mifflin et al. (1990), the accuracy of the equation was tested only in healthy individuals. In contrast, the model 
+developed in this study was validated in both healthy and obese individuals. The high accuracy observed in both 
+groups suggests that the model may be applied to a broader population. In the literature, numerous studies have 
+evaluated the accuracy of equations used to estimate energy requirements. For instance, Owen et al. (1987) re-
+assessed the energy needs of males and developed a new weight-based prediction equation21. This equation has a 
+lower accuracy level than the equation developed by Mifflin et al. (1990). To provide another example, while the 
+study by Batista et al. (2021) focused on evaluating the accuracy of existing equations, our study proposes a new 
+artificial intelligence-based method27. These studies have demonstrated that the proposed formulas or methods 
+effectively estimate Basal Metabolic Rate (BMR). When the results of the reviewed articles are examined in 
+Data
+Level
+Model
+Performance Evaluation Criteria
+MAPE
+MAD
+MSE
+RMSE
+R
+R2
+PS
+TT
+MS
+Male
+10
+GPR-M
+0.1
+3.24
+80.93
+9.00
+1
+1
+5,500
+1.6982
+83
+Male
+10
+GPR-R
+0.1
+2.67
+39.53
+6.29
+1
+1
+5,500
+2.5105
+83
+Male
+10
+GPR-S
+0.1
+2.67
+39.53
+6.29
+1
+1
+5,600
+2.3671
+83
+Female
+15
+GPR-M
+0.1
+2.99
+441.20
+21.01
+1
+1
+2,900
+4.9145
+167
+Female
+15
+GPR-R
+0,1
+2.10
+23.11
+4.81
+1
+1
+3,100
+6.9489
+167
+Female
+15
+GPR-S
+0.1
+2.11
+23.34
+4.83
+1
+1
+2,900
+5.0900
+167
+Total
+11
+GPR-M
+0.1
+1.67
+17.94
+4.24
+1
+1
+11,000
+7.3128
+201
+Total
+11
+GPR-R
+0.1
+2.18
+273.05
+16.52
+1
+1
+17,000
+13.0620
+201
+Total
+11
+GPR-S
+0.1
+2.18
+273.05
+16.52
+1
+1
+12,000
+6.3757
+201
+Table 8.  Performance metrics of GPR-Based models using 10-Fold Cross-Validation (k = 10). FG Formula 
+Group, PS Prediction Speed obs/sec, TT Training Time sec, MS Model Size kB.
+ 
+Fig. 2.  Performance metrics (MAPE, MAD, SE, MSE, RMSE, R) varied across feature levels for the Total 
+dataset using GPR-S and Hybrid models.
+ 
+Scientific Reports |        (2025) 15:38882 
+12
+| https://doi.org/10.1038/s41598-025-22786-6
+www.nature.com/scientificreports/
+terms of the correlation coefficient (R value), the artificial intelligence-based models proposed in this study 
+exhibit higher R values compared to the models presented in studies that suggest traditional equations. This 
+result indicates that artificial intelligence-based models may offer a more successful approach in predicting 
+energy expenditure. Beyond the numeric superiority, the conceptual advantages of AI-based models compared 
+to traditional equations should also be emphasized. Conventional formulas, such as those of Mifflin or Harris-
+Benedict, rely on fixed parameters and assume linear relationships, which may not fully capture the complexity 
+of human energy metabolism. In contrast, AI models can identify non-linear interactions between demographic 
+and anthropometric variables, adapt to gender-specific differences, and dynamically select the most relevant 
+features through feature selection methods. Moreover, they can be updated with new data, providing flexibility 
+and adaptability that traditional equations cannot offer. Such flexibility has also been highlighted in other 
+domains, such as smart city traffic prediction, where recurrent neural networks with GRU-based architectures 
+enhanced performance in capturing complex spatiotemporal patterns72. Similarly, other biomedical applications 
+have evidenced the effectiveness of AI-based approaches. For example, Khafaga et al. (2022) developed a deep 
+convolutional neural network optimized with the Al-Biruni Earth radius algorithm for automated monkeypox 
+disease classification, achieving superior diagnostic accuracy compared with conventional methods73. Such 
+results highlight the broader potential of AI models in healthcare and reinforce our conclusion that AI-driven 
+prediction models can outperform traditional approaches in reliability and applicability. These properties 
+explain why AI-based models achieve higher performance metrics and conceptually outperform classical 
+approaches. During the model development process, other advanced machine learning methods such as support 
+vector machines and random forests were also tested; however, they did not achieve competitive results on the 
+current dataset. For this reason, the study focused on the hybrid Gaussian Process Regression approach, which 
+demonstrated consistently superior predictive performance. Furthermore, an analysis of feature importance 
+highlighted that feature 30 (fluid mass min, kg), feature 31 (fluid mass max, kg), and feature 13 (maximum lean 
+mass, kg) were consistently among the strongest predictors of daily energy requirements. These findings are 
+physiologically meaningful, as fluid mass reflects the body’s hydration status and lean mass is a key determinant 
+of basal metabolic rate. These features’ prominence reinforces the proposed models’ biological plausibility and 
+provides additional confidence in their predictive validity. For clarity, the correspondence between feature 
+numbers and variable names is provided in Table 2.
+Recent studies have also explored large-scale deep learning models, such as graph neural networks, 
+transformers, and attention-based architectures, for biomedical prediction tasks74,75. These models reported high 
+accuracies and low error rates but at the cost of significant computational requirements, reliance on specialized 
+Fig. 3.  Scatter plot of actual versus predicted BMR values for the best-performing GPR-M model (10-fold 
+cross-validation, total dataset).
+ 
+Scientific Reports |        (2025) 15:38882 
+13
+| https://doi.org/10.1038/s41598-025-22786-6
+www.nature.com/scientificreports/
+hardware, and long training times, which can limit their feasibility in clinical or field applications. By contrast, 
+the hybrid GPR-based approach presented in this study combines feature selection and gender-specific tailoring 
+to deliver high predictive performance using substantially fewer computational resources. This efficiency makes 
+the proposed model more accessible and practical, particularly in low-resource or field settings, while retaining 
+strong accuracy.
+On the other hand, Gerrior et al. (2006) present a more straightforward approach for estimating individuals’ 
+daily energy requirements. This approach utilizes a spreadsheet template to calculate daily energy requirements 
+based on the physical activity levels of individuals. The article explains using this template and outlines the 
+key considerations when estimating energy requirements. By enabling the estimation of individual energy 
+requirements, this approach makes achieving energy balance a more attainable goal7. Although a more 
+straightforward method was proposed, the artificial intelligence-based approach in this study exhibited a higher 
+correlation in terms of R values. Accordingly, AI models offer higher accuracy in predicting energy expenditure. 
+The survey by Orozco-Ruiz et al. (2017) aimed to develop a new equation for estimating energy requirements 
+in adults. In the study, the accuracy of the newly developed equation was compared with equations previously 
+formulated for different populations. According to the results, the new equation had a higher accuracy level than 
+the others24. The R value of the newly developed equation was 0.72. This value is lower than the R values achieved 
+by the artificial intelligence-based models presented in this study. Artificial intelligence-based models exhibit 
+higher R values than those in the survey by Orozco-Ruiz et al. (2017), suggesting that AI-based models may 
+offer a more successful approach for estimating energy expenditure. Although the newly developed equation for 
+patients with chronic kidney disease also demonstrates a high level of accuracy, the artificial intelligence-based 
+models in this study yield more accurate results when compared to the R value26.
+A perfect performance (R² = 1.00) was observed in several of the developed models. This outcome should be 
+interpreted cautiously and can be attributed to several factors. First, the relatively homogeneous dataset, derived 
+from a specific and limited population group, may have facilitated the models in capturing strong relationships 
+between input features and energy requirements. Second, the selected features at the optimal levels (10 for males, 
+15 for females, and 11 for the combined group) were highly correlated with basal metabolic rate, enabling the 
+models to identify nearly perfect associations. Finally, owing to its non-parametric and kernel-based structure, 
+the Gaussian Process Regression (GPR) algorithm is highly flexible in learning linear and non-linear interactions. 
+This may explain its ability to achieve an exact fit under such conditions. While these results indicate strong 
+internal consistency, further external studies with larger and more heterogeneous datasets are recommended.
+In this study, 10-fold cross-validation (k = 10) was also applied to strengthen the internal validity of the models. 
+The cross-validation results demonstrated that the models consistently achieved outstanding performance at 
+feature levels 10 for males, 15 for females, and 11 for the combined dataset (R = 1, R² = 1). In addition, the 
+computational costs were evaluated, revealing that prediction speeds reached thousands of observations per 
+second, training times remained within seconds to a few minutes, and model sizes were relatively small. These 
+findings indicate that the proposed models are highly accurate, computationally efficient, and feasible for 
+practical clinical and field applications.
+In addition to predictive accuracy, the analysis of computational costs (Tables 6 and 7) provides further 
+insights into the practicality of the proposed models. Specifically, prediction speeds reached hundreds of 
+thousands of observations per second, training times remained within fractions of a second to a few minutes 
+depending on model type, and model sizes were manageable, typically ranging from a few hundred kilobytes 
+to a few megabytes. These characteristics confirm that the developed AI-based models are statistically robust, 
+computationally efficient, and scalable for real-world applications.
+In addition, a critical limitation of this study is the lack of an external validation dataset. Although 10-fold 
+cross-validation was performed to enhance the robustness of the results and reduce the risk of overfitting, the 
+absence of independent testing restricts the generalizability of the models. Therefore, future studies should 
+incorporate external and more heterogeneous cohorts to confirm and extend the applicability of the proposed 
+models. Furthermore, the computational efficiency of the proposed models is an essential consideration for 
+real-world applications. In this study, the GPR-based models demonstrated sufficient efficiency to produce 
+predictions within seconds for small- to medium-sized datasets, supporting their applicability in clinical and 
+field settings. However, due to the cubic computational complexity of GPR, scalability challenges may arise when 
+working with much larger and more heterogeneous datasets. Future work should therefore explore optimized or 
+approximation-based approaches—such as sparse GPR to reduce kernel matrix complexity, lightweight neural 
+approximations to retain non-linear mapping at lower cost, or model compression/distillation techniques to 
+balance accuracy and efficiency—to reduce computational costs in large-scale applications.
+In addition, the practical integration of AI-based models extends beyond technical performance. Ethical 
+aspects, including protecting personal health data, algorithmic transparency, and the risk of bias across different 
+populations, must also be carefully addressed. Beyond these issues, effective data governance frameworks are 
+needed to ensure secure storage, controlled access, and accountability in handling sensitive health information. 
+Moreover, the explainability of AI models is critical, as a lack of transparency may hinder clinical adoption 
+and trust among practitioners. Finally, practical challenges such as software integration into existing healthcare 
+systems and compliance with regulatory approval processes must be considered to support safe and reliable real-
+world deployment. Therefore, ethical and trustworthy implementation strategies will be essential for successfully 
+integrating such models into mobile health applications and clinical decision support systems.
+In this study, applying Principal Component Analysis (PCA) resulted in a noticeable decline in prediction 
+performance (R = 0.48, R² = 0.23). The main reason for this reduction is that PCA is a linear transformation 
+method that projects the original features into orthogonal components. While this approach successfully reduces 
+dimensionality and multicollinearity, it may simultaneously eliminate or weaken non-linear interactions among 
+the features, which are crucial for accurate energy requirement prediction. In particular, the initial principal 
+Scientific Reports |        (2025) 15:38882 
+14
+| https://doi.org/10.1038/s41598-025-22786-6
+www.nature.com/scientificreports/
+components are dominated by features that explain the largest proportion of variance but not necessarily those 
+with the strongest predictive relationship with the target variable. As a result, certain anthropometric and 
+bioelectrical impedance variables that carried complex non-linear associations with basal metabolic rate might 
+have been underrepresented or lost in the transformed feature space. This explains why the models trained with 
+PCA-transformed features underperformed compared to those trained with the original selected features.
+Recent evidence also suggests that metaheuristic optimization approaches can overcome such limitations 
+of linear dimensionality reduction. For instance, El-Kenawy et al. (2022) introduced a hybrid optimization 
+framework combining Grey Wolf Optimizer and Sine Cosine Algorithm to optimize feature selection and 
+ensemble classifiers, achieving classification accuracies above 97% in high-dimensional image datasets. These 
+findings highlight that optimization-driven feature selection strategies can enhance model robustness and 
+predictive performance, particularly in complex biomedical applications76.
+Similar conclusions have been reported in recent studies on optimization-based feature selection. For 
+instance, Abdelhamid et al. proposed a hybrid Binary Sine Cosine Weighted Dipper Throated Optimization 
+(bSCWDTO) algorithm that effectively balances exploration and exploitation to identify the most relevant 
+subset of features, thereby enhancing classification accuracy and stability across high-dimensional datasets77. 
+These findings support our observation that careful feature selection is crucial in achieving reliable predictive 
+performance, particularly in health-related applications where data complexity and redundancy are common.
+In addition to all these formulas, wearable devices are also used to estimate energy requirements. These 
+are lightweight, portable, and non-invasive technological tools15. In contrast to these methods, the artificial 
+intelligence-based model proposed in this study demonstrates a high level of accuracy, is also suitable for field 
+use, and is cost-effective. For example, the Polar Grit X Pro is reliable in estimating energy expenditure. These 
+findings are significant as they indicate the potential of wearable technologies to predict energy expenditure15. 
+However, the use of wearable technologies has certain limitations. Wearable devices may be expensive and may 
+not be accessible to everybody. Secondly, the accuracy of wearable devices may vary depending on the type 
+of device and how it is used. Lastly, wearable devices may not be capable of fully measuring all components 
+of energy expenditure (e.g., basal metabolic rate, physical activity, thermic effect of foods). The artificial 
+intelligence-based model developed in this study offers certain advantages over wearable technologies. Firstly, 
+the model is more cost-effective and more easily accessible. Secondly, its accuracy is higher compared to that of 
+wearable devices. Finally, the model provides a more comprehensive estimation by considering all components 
+of energy expenditure. In a similar study, Dougherty et al. (2022) demonstrated that accelerometers may be used 
+to estimate energy expenditure; however, they emphasized that the accelerometer’s placement and participants’ 
+demographic characteristics should be considered. Wrist-worn accelerometers demonstrated a stronger 
+association with energy expenditure than chest-worn devices. These findings provide valuable insights into using 
+accelerometers to estimate energy expenditure. Moreover, the study highlights the importance of considering 
+accelerometer placement and participant demographic characteristics16. Artificial intelligence-based models 
+have been demonstrated to possess a higher accuracy level than the approach presented by Dougherty et al.
+Indirect calorimetry is the gold standard for estimating energy requirements2,11. However, measurement 
+with indirect calorimetry is labor-intensive and requires trained technical staff. The calculation is performed 
+by measuring the carbon dioxide exhaled and the oxygen consumed using a mask that covers the mouth and 
+nose. This process requires the use of specialized, high-cost software2,11,12. However, specific protocols should be 
+followed to conduct these measurements accurately. For instance, individuals should refrain from consuming 
+caffeine for at least 4 h and avoid drinking alcohol and smoking for at least 2 h before the measurement12. 
+The model proposed in this study may estimate energy requirements using simpler parameters than the gold 
+standard. Therefore, the proposed model represents a more easily applicable method. In addition, artificial 
+intelligence software enables energy requirement estimations to be performed at a lower cost. Moreover, the 
+models proposed in this study do not require any food/beverage consumption-related restrictions. This feature 
+allows for the convenience of performing measurements at any time of the day.
+In addition to the gold standard of indirect calorimetry commonly used in the literature, several other 
+methods, such as the double-labeled water technique and direct calorimetry, are also available2,10 Although the 
+results obtained from all these methods have a high degree of accuracy, they also have certain disadvantages. 
+For instance, direct calorimetry measures the heat lost within a controlled room environment10Therefore, this 
+method is unsuitable for use in field settings. In contrast, the model used in this study may estimate energy 
+requirements without requiring a specialized environment. On the other hand, the double-labeled water method 
+estimates energy requirements through oral administration of isotopes. It is a complex and costly method9. 
+Unlike the double-labeled water method, this study presents a more straightforward and cost-effective artificial 
+intelligence model. In addition, there is no need for technical staff. Considering the features of the proposed 
+model, it may also be suitable for clinical use. In the literature, numerous studies estimate energy requirements 
+using the abovementioned methods. In the current study, artificial intelligence-based models have higher R 
+values78. In the study conducted by Helsel et al. (2023) on individuals with Down syndrome, the model equations 
+used have high R values. The IOM equation provides the most accurate estimation in adolescents with Down 
+syndrome22. However, the correlation coefficients are observed to be higher in this study. In the study conducted 
+by Plucker et al. (2018), a new model was developed using the double-labeled water method. Estimating energy 
+requirements does not require knowledge of the PAL (Physical Activity Level) value, and therefore may lead 
+to more accurate predictions. Plucker used the adjusted R² value in models predicting free-living energy 
+requirements. The R² values were 0.65 for the formula including age, height, body weight, and gender, while 
+models incorporating body composition and resting metabolic rate reached values as high as 0.7425. When R² 
+values are compared, the artificial intelligence-based model may provide more accurate predictions, while the 
+method developed using the double-labeled water technique may be more practical and applicable.
+Scientific Reports |        (2025) 15:38882 
+15
+| https://doi.org/10.1038/s41598-025-22786-6
+www.nature.com/scientificreports/
+It is not device-based; energy requirements may be estimated using Food Consumption Records2,6. However, 
+collecting food consumption records is labor-intensive, time-consuming, and based on self-reported recall, 
+reducing reliability. Therefore, it is not considered as a preferable method2. As mentioned above, there are 
+numerous different formulas in the literature to estimate energy requirements5,18,19. Due to the high variation 
+among these formulas, studies proposing new formulas are still being conducted. As demonstrated in this study, 
+the developed artificial intelligence-based model shows a notable improvement in the prediction errors of energy 
+requirements compared to the formulas in the current literature. In other words, it demonstrates a higher level of 
+accuracy in estimating energy requirements compared to other methods in the current literature. This is due to 
+the high capability of artificial intelligence models to capture complex and non-linear relationships. Therefore, 
+these models exhibit higher R values. Nevertheless, the performance of both the models used in this study and 
+those found in the literature is acceptable in predicting energy expenditure.
+As shown in the Results (Table 7), the AI-based models consistently outperformed the traditional literature-
+based formulas such as WHO, Harris-Benedict, and Mifflin, achieving R² values close to 1. This superior 
+performance can be attributed to the ability of AI models to capture complex, non-linear relationships between 
+demographic and anthropometric variables, unlike traditional equations that rely on fixed parameters and linear 
+assumptions. However, a significant limitation is that both AI-based and literature-based models were evaluated 
+on the same dataset, which may have inflated the observed differences in performance. Future studies should 
+therefore include independent external datasets to provide a more robust and generalizable comparison.
+In addition to methodological contributions, the proposed model demonstrates promising potential for 
+practical applications. It can be integrated into clinical decision support systems or mobile health applications to 
+provide rapid, cost-effective, and non-invasive estimations of daily energy requirements. Such an approach may 
+assist dietitians in tailoring nutritional interventions and support public health monitoring by enabling large-
+scale assessment of energy balance. However, the generalizability of the current model should be interpreted 
+with caution. Since the dataset was limited to a relatively homogeneous group, the model may not fully represent 
+populations with different ethnic, clinical, lifestyle, geographic, or environmental characteristics. Therefore, 
+further validation across larger and more diverse cohorts will be essential before widespread application.
+Although there are many different methods/formulas in the literature, the advantages of this model are that 
+it is non-invasive, practical, highly reliable, suitable for field use, and cost-effective. In conclusion, the artificial 
+intelligence-based model developed in this study has a higher accuracy in estimating energy requirements than 
+other methods in the literature, providing specific advantages. These advantages may be attributed to the ability 
+of artificial intelligence models to analyze the variables used in estimating energy expenditure more effectively. 
+Artificial intelligence models may process large amounts of data and identify complex relationships between 
+variables. Therefore, AI models may provide more accurate results in predicting energy expenditure. This 
+study, along with all the published articles in the current literature, provides valuable insights for developing 
+and improving methods for future estimations of energy requirements. In future studies, the performance of 
+these artificial intelligence models may be evaluated in more detail and tested across different populations and 
+conditions worldwide. Furthermore, developing an artificial intelligence model using data collected through 
+indirect calorimetry—the gold standard for estimating energy requirements—will enhance the model’s 
+performance.
+Conclusion
+There are several factors underlying the success of the model we developed. First, the anthropometric 
+measurements and demographic data used in the model are key factors influencing energy requirements. The 
+accurate and comprehensive inclusion of these variables in the model has enhanced its performance. Secondly, 
+the artificial intelligence algorithms used in the model effectively analyze the data and accurately estimate energy 
+requirements. Finally, during the model’s development process, its performance was tested and optimized using 
+different datasets. Thus, the model may be successfully applied across various populations and conditions.
+Estimating energy requirements is used in many fields, particularly in dietary planning and counseling, 
+healthcare, and for athletes. In this study, energy requirement estimation was performed using artificial 
+intelligence based on BIA measurements and demographic data. The proposed models have several advantages 
+over existing devices and models in the literature. These include: (1) energy requirements may be calculated by 
+BIA measurements and demographic data, which are easy to obtain; (2) a highly accurate artificial intelligence-
+based system has been developed; (3) it is easy to use and does not require technical expertise/staff; (4) it does not 
+require additional installation costs; and (5) the system saves time. Considering all these features, the proposed 
+model is evaluated as more advanced, practical than the literature, and suitable for daily use.
+In future research, it will be essential to validate the proposed models on larger and more diverse datasets, 
+including individuals from different ethnic backgrounds, age groups, and clinical conditions. Such external 
+validation will help assess the generalizability of the models and ensure their applicability in broader real-world 
+healthcare and nutritional contexts. Moreover, integrating additional physiological or lifestyle-related variables 
+could further enhance predictive accuracy and practical utility.
+An additional strength of the present study is demonstrating that the proposed models achieve superior 
+predictive accuracy compared to traditional equations and high computational efficiency. The models showed 
+very short training times, rapid prediction speeds, and compact model sizes, indicating their suitability for 
+integration into mobile health applications, clinical decision support systems, and large-scale population studies.
+Data availability
+The datasets used and/or analysed during the current study are available from the corresponding author on 
+reasonable request.
+Scientific Reports |        (2025) 15:38882 
+16
+| https://doi.org/10.1038/s41598-025-22786-6
+www.nature.com/scientificreports/
+Received: 28 June 2025; Accepted: 30 September 2025
+References
+	 1.	 Smith, H. A. & Betts, J. A. Nutrient timing and metabolic regulation. J. Physiol. 600 (6), 1299. https://doi.org/10.1113/JP280756 
+(2022).
+	 2.	 Mahan, L. K., Escott-Stump, S. & Raymond, L. J. Krause’ s Food & the Nutrition Care Process Edition 15th, Food and Nutrition 
+Board, Institute of Medicine, National Academies, pp. 1–1159, 2021, Accessed: May 31, 2023. [Online]. Available: ​h​t​t​p​s​:​/​/​i​o​m​.​n​a​t​i​o​
+n​a​l​a​c​a​d​e​m​i​e​s​.​o​r​g​/​~​/​m​e​d​i​a​/​F​i​l​e​s​/​A​c​t​i​v​i​t​y​F​i​l​e​s​/​N​u​t​r​i​t​i​o​n​/​D​R​I​s​/​5​_​S​u​m​m​a​r​y​T​a​b​l​e​T​a​b​l​e​s​1–4.pdf.
+	 3.	 Wang, Z. M., Heshka, S., Zhang, K., Boozer, C. N. & Heymsfield, S. B. Resting energy expenditure: systematic organization and 
+critique of prediction methods. Obes. Res. 9 (5), 331–336. https://doi.org/10.1038/OBY.2001.42 (2012).
+	 4.	 Kee, A. L., Isenring, E., Hickman, I. & Vivanti, A. Resting energy expenditure of morbidly obese patients using indirect calorimetry: 
+a systematic review. Obes. Rev. 13 (9), 753–765. https://doi.org/10.1111/J.1467-789X.2012.01000.X (2012).
+	 5.	 Foster, G. D. & McGuckin, B. G. Estimating resting energy expenditure in obesity. Obes. Res. 9, 367S-372S. ​h​t​t​p​s​:​/​/​d​o​i​.​o​r​g​/​1​0​.​1​0​0​
+2​/​O​B​Y​.​2​0​0​1​.​9​.​S​5​.​3​6​7​ (2018).
+	 6.	 Barringer, N. D., Pasiakos, S. M., McClung, H. L., Crombie, A. P. & Margolis, L. M. Prediction equation for estimating total daily 
+energy requirements of special operations personnel. J. Int. Soc. Sports Nutr. 15 (1). https://doi.org/10.1186/s12970-018-0219-x 
+(2018).
+	 7.	 Gerrior, S., Juan, W. Y. & Basiotis, P. An Easy Approach to Calculating Estimated Energy Requirements, Prev Chronic Dis. 3 (4), 
+Accessed: Aug. 13, 2023. [Online]. (2006). Available: http:///pmc/articles/PMC1784117/.
+	 8.	 Pontzer, H. et al. Daily energy expenditure through the human life course, Science (1979). 373 (6556), 808–812. ​h​t​t​p​s​:​/​/​d​o​i​.​o​r​g​/​1​0​
+.​1​1​2​6​/​s​c​i​e​n​c​e​.​a​b​e​5​0​1​7​ (2021).
+	 9.	 Hills, A. P., Mokhtar, N. & Byrne, N. M. Assessment of physical activity and energy expenditure: an overview of objective measures. 
+Front. Nutr. 1 https://doi.org/10.3389/FNUT.2014.00005 (2014).
+	10.	 Levine, J. A. Measurement of energy expenditure, Public Health Nutr. 8 (7a), 1123–1132, https://doi.org/10.1079/PHN2005800 
+(2005).
+	11.	 Haugen, A. H., Chan, L. N. & Li, F. Indirect calorimetry: A practical guide for clinicians. Nutr. Clin. Pract. 22 (4), 377–388. ​h​t​t​p​s​:​/​
+/​d​o​i​.​o​r​g​/​1​0​.​1​1​7​7​/​0​1​1​5​4​2​6​5​0​7​0​2​2​0​0​4​3​7​7​ (2007).
+	12.	 Skipper, A. Dietitian’s handbook of enteral and parenteral nutrition, 3rd ed., vol. 1. Jones \& Bartlett Learning, 2012. Accessed: May 
+31, 2023. [Online]. Available: https://www.jblearning.com/catalog
+	13.	 Henriksen, H. B. et al. Validity and reproducibility of a whole-room indirect calorimeter for the Estimation of VO2, VCO2, and 
+resting metabolic rate. Physiol. Rep. 11 (7), e15658. https://doi.org/10.14814/PHY2.15658 (2023).
+	14.	 Wong, W. W. et al. The doubly labeled water method produces highly reproducible longitudinal results in nutrition studies. J. Nutr. 
+144 (5), 777–783. https://doi.org/10.3945/JN.113.187823 (2014).
+	15.	 Kloss, E. B. et al. Validation of Polar grit X pro for estimating energy expenditure during military field training: A pilot study. J. 
+Sports Sci. Med. 22 (4), 658–666. https://doi.org/10.52082/JSSM.2023.658 (2023).
+	16.	 Dougherty, R. J. et al. Validation of accelerometer placement to capture energy expenditure using doubly labeled water. Appl. 
+Physiol. Nutr. Metab. 47 (10), 1045–1049. https://doi.org/10.1139/APNM-2022-0192 (2022).
+	17.	 Edwards, V. C. et al. Nutrition and physical activity in British army officer cadet training part 2-Daily distribution of energy and 
+macronutrient intake. Int. J. Sport Nutr. Exerc. Metab. 32 (3), 204–213. https://doi.org/10.1123/IJSNEM.2021-0191 (2022).
+	18.	 Mifflin, M. D. et al. A new predictive equation for resting energy expenditure in healthy individuals. Am. J. Clin. Nutr. 51 (2), 
+241–247. https://doi.org/10.1093/AJCN/51.2.241 (1990).
+	19.	 Arthur Harris, B. J. & Benedict, F. G. A biometric study of human basal metabolism. Proc. Natl. Acad. Sci. U S A. 4 (12), 370. ​h​t​t​p​
+s​:​/​/​d​o​i​.​o​r​g​/​1​0​.​1​0​7​3​/​P​N​A​S​.​4​.​1​2​.​3​7​0​ (1918).
+	20.	 Owen, O. E. et al. A reappraisal of the caloric requirements of men. Am. J. Clin. Nutr. 46 (6), 875–885. ​h​t​t​p​s​:​/​/​d​o​i​.​o​r​g​/​1​0​.​1​0​9​3​/​A​J​
+C​N​/​4​6​.​6​.​8​7​5​ (1987).
+	21.	 Owen, O. E. et al. A reappraisal of caloric requirements in healthy women. Am. J. Clin. Nutr. 44 (1), 1–19. ​h​t​t​p​s​:​/​/​d​o​i​.​o​r​g​/​1​0​.​1​0​9​3​/​
+A​J​C​N​/​4​4​.​1​.​1​ (1986).
+	22.	 Helsel, B. C. et al. Resting energy expenditure in adolescents with down syndrome: a comparison of commonly used predictive 
+equations. J. Intellect. Disabil. Res. 67 (2), 112–122. https://doi.org/10.1111/JIR.12995 (2023).
+	23.	 Mezzomo, T. R., Dias, M. R. M. G., Vilela, R. M. & Pereira, R. M. Accuracy of equations for estimating resting energy expenditure 
+in children and adolescents living with phenylketonuria. J. Hum. Nutr. Diet. 36 (5), 1661–1674. https://doi.org/10.1111/JHN.13200 
+(2023).
+	24.	 Orozco-Ruiz, X. et al. Development and validation of new predictive equation for resting energy expenditure in adults with 
+overweight and obesity, Clin Nutr. 37 (6) Pt A, 2198–2205. https://doi.org/10.1016/J.CLNU.2017.10.022 (2018).
+	25.	 Plucker, A. et al. Adult energy requirements predicted from doubly labeled water. Int. J. Obes. (Lond). 42 (8), 1515–1523. ​h​t​t​p​s​:​/​/​d​
+o​i​.​o​r​g​/​1​0​.​1​0​3​8​/​S​4​1​3​6​6​-​0​1​8​-​0​1​6​8​-​0​ (2018).
+	26.	 Ramos-Acevedo, S., Rodríguez-Gómez, L., López-Cisneros, S., González-Ortiz, A. & Espinosa-Cuevas, Á. Nutritional status and 
+other clinical variables are associated with the resting energy expenditure in patients with chronic kidney disease: A validity study. 
+Front. Nutr. 9 https://doi.org/10.3389/FNUT.2022.881719 (2022).
+	27.	 Batista, L. D. et al. Estimating total daily energy requirements in community-dwelling older adults: validity of previous predictive 
+equations and modeling of a new approach. Eur. J. Clin. Nutr. 75 (1), 133–140. https://doi.org/10.1038/S41430-020-00717-0 (2021).
+	28.	 Ivanovitch, K., Klaewkla, J., Chongsuwat, R., Viwatwongkasem, C. & Kitvorapat, W. The intake of energy and selected nutrients by 
+thai urban sedentary workers: an evaluation of adherence to dietary recommendations, J Nutr Metab. 2014, ​h​t​t​p​s​:​/​/​d​o​i​.​o​r​g​/​1​0​.​1​1​5​
+5​/​2​0​1​4​/​1​4​5​1​8​2​ (2014).
+	29.	 Zou, Y. et al. Food and nutrient intake in children and adolescents with or without Overweight/Obesity. Nutrients 15 (20). ​h​t​t​p​s​:​/​
+/​d​o​i​.​o​r​g​/​1​0​.​3​3​9​0​/​N​U​1​5​2​0​4​4​5​0​ (2023).
+	30.	 Welles, A. P., Looney, D. P., Rumpler, W. V. & Buller, M. J. Estimating human metabolic energy expenditure using a bootstrap 
+particle filter. 2017 IEEE 14th International Conference on Wearable and Implantable Body Sensor Networks, BSN 2017, pp. 103–106, 
+https://doi.org/10.1109/BSN.2017.7936018 (2017).
+	31.	 Cvetković, B., Kaluža, B., Milić, R. & Luštrek, M. Towards Human Energy Expenditure Estimation Using Smart Phone Inertial 
+Sensors, Lecture Notes in Computer Science (including subseries Lecture Notes in Artificial Intelligence and Lecture Notes in 
+Bioinformatics), vol. 8309 LNCS, pp. 94–108, https://doi.org/10.1007/978-3-319-03647-2_7 (2013).
+	32.	 Abut, F. et al. Harnessing AI for health: optimized neural network models for resting metabolic rate prediction. IEEE Access. 12, 
+156050–156064. https://doi.org/10.1109/ACCESS.2024.3477326 (2024).
+	33.	 Na, H., Kim, H., Kim, H., Byun, H. & Kim, T. Prediction of the human metabolic rate based on AI and the Kinect camera, in 
+15th Conference of the International Society of Indoor Air Quality and Climate, Seoul, Accessed: Aug. 24, 2025. [Online]. (2018). 
+Available: ​h​t​t​p​s​:​/​/​w​w​w​.​s​c​o​p​u​s​.​c​o​m​/​p​a​g​e​s​/​p​u​b​l​i​c​a​t​i​o​n​s​/​8​5​1​0​5​6​2​0​9​6​7
+	34.	 Plucker, A. et al. Adult energy requirements predicted from doubly labeled water. Int. J. Obes. 42 (8), 1515–1523. ​h​t​t​p​s​:​/​/​d​o​i​.​o​r​g​/​1​
+0​.​1​0​3​8​/​S​4​1​3​6​6​-​0​1​8​-​0​1​6​8​-​0​;​S​U​B​J​M​E​T​A​=​1​6​3​,​2​7​4​3​,​2​8​1​4​,​3​9​3​,​6​9​2​,​7​0​0​;​K​W​R​D​=​N​U​T​R​I​T​I​O​N​,​O​B​E​S​I​T​Y​. (2018).
+Scientific Reports |        (2025) 15:38882 
+17
+| https://doi.org/10.1038/s41598-025-22786-6
+www.nature.com/scientificreports/
+	35.	 Ahmed, A. et al. The effectiveness of wearable devices using artificial intelligence for blood glucose level forecasting or prediction: 
+systematic review. J. Med. Internet Res. 25 (1), e40259. https://doi.org/10.2196/40259 (2023).
+	36.	 Luo, H. et al. Accuracy enhancement of Micro-PMV sensor system for human thermal comfort measurements through machine 
+learning. IEEE Int. Conf. Nano/Molecular Med. Eng. NANOMED. 137–140. ​h​t​t​p​s​:​/​/​d​o​i​.​o​r​g​/​1​0​.​1​1​0​9​/​N​A​N​O​M​E​D​5​9​7​8​0​.​2​0​2​3​.​1​0​4​0​4​
+9​6​3​ (2023).
+	37.	 Catal, C. & Akbulut, A. Automatic energy expenditure measurement for health science. Comput. Methods Programs Biomed. 157, 
+31–37. https://doi.org/10.1016/J.CMPB.2018.01.015 (2018).
+	38.	 Khodadadi, N. et al. BAOA: binary arithmetic optimization algorithm with K-Nearest neighbor classifier for feature selection. 
+IEEE Access. 11, 94094–94115. https://doi.org/10.1109/ACCESS.2023.3310429 (2023).
+	39.	 Uçar, M. K., Uçar, Z., Uçar, K., Akman, M. & Bozkurt, M. R. Determination of body fat percentage by electrocardiography signal 
+with gender based artificial intelligence. Biomed. Signal. Process. Control. 68 https://doi.org/10.1016/j.bspc.2021.102650 (2021).
+	40.	 Uçar, M. K. & Uçar, Z. Body fat Amount / Percentage calculation methods: systematic review. J. Inst. Sci. Technol. 10 (2), 930–943. 
+https://doi.org/10.21597/jist.650481 (2020).
+	41.	 Baysal, A. et al. Diyet El Kitabı, 13th ed. Ankara: Hatipoğlu Yayıncılık, 2022. Accessed: Dec. 15, 2022. [Online]. Available: ​h​t​t​p​s​:​/​/​
+w​w​w​.​h​a​t​i​b​o​g​l​u​y​a​y​i​n​e​v​i​.​c​o​m​/​u​r​u​n​/​d​i​y​e​t​-​e​l​-​k​i​t​a​b​i
+	42.	 Lu, H. M., Chen, J. S. & Liao, W. C. Nonparametric regression via Variance-Adjusted gradient boosting Gaussian process regression. 
+IEEE Trans. Knowl. Data Eng. 33 (6), 2669–2679. https://doi.org/10.1109/TKDE.2019.2953728 (2021).
+	43.	 He, Z. K., Liu, G. B., Zhao, X. J. & Wang, M. H. Overview of Gaussian process regression. Kongzhi Yu Juece/Control Decision 28 (8), 
+1121–1129+1137 (2013).
+	44.	 Wang, Z. & Bovik, A. C. Mean squared error: lot it or leave it? A new look at signal fidelity measures. IEEE Signal. Process. Mag. 26 
+(1), 98–117. https://doi.org/10.1109/MSP.2008.930649 (2009).
+	45.	 Matveeva, A. & Leonenko, V. Application of Gaussian process regression as a surrogate modeling method to assess the dynamics 
+of COVID-19 propagation. Procedia Comput. Science. 340–347. https://doi.org/10.1016/j.procs.2022.11.018 (2022).
+	46.	 Palar, P. S., Zakaria, K., Zuhal, L. R., Shimoyama, K. & Liem, R. P. Gaussian processes and support vector regression for uncertainty 
+quantification in aerodynamics, in AIAA Scitech 2021 Forum, pp. 1–12. (2021).
+	47.	 Said, Z., Sharma, P., Aslfattahi, N. & Ghodbane, M. Experimental analysis of novel ionic liquid-MXene hybrid nanofluid’s energy 
+storage properties: Model-prediction using modern ensemble machine learning methods. J. Energy Storage. 52 ​h​t​t​p​s​:​/​/​d​o​i​.​o​r​g​/​1​0​.​
+1​0​1​6​/​j​.​e​s​t​.​2​0​2​2​.​1​0​4​8​5​8​ (2022).
+	48.	 Zhao, X., Zhang, D., Zhang, R. & Xu, B. A comparative study of Gaussian process regression with other three machine learning 
+approaches in the performance prediction of centrifugal pump. Proc. Inst. Mech. Eng. C J. Mech. Eng. Sci. 236 (8), 3938–3949. 
+https://doi.org/10.1177/09544062211050542 (2022).
+	49.	 Ting, T. O., Yang, X. S., Cheng, S. & Huang, K. Hybrid metaheuristic algorithms: Past, present, and future. 585. ​h​t​t​p​s​:​/​/​d​o​i​.​o​r​g​/​1​0​.​1​
+0​0​7​/​9​7​8​-​3​-​3​1​9​-​1​3​8​2​6​-​8​_​4​ (2015).
+	50.	 Chadha, A. Hybridization of Computational Intelligent Algorithms. (2024). https://doi.org/10.1201/9781003347484-10
+	51.	 Oduntan, O. I. & Thulasiraman, P. Blending multiple algorithmic granular components: a recipe for clustering. Swarm Intell. 16 (4), 
+305–349. https://doi.org/10.1007/S11721-022-00219-8/METRICS (2022).
+	52.	 Sudholt, D. Parametrization and balancing local and global search. Stud. Comput. Intell. 379, 55–72. ​h​t​t​p​s​:​/​/​d​o​i​.​o​r​g​/​1​0​.​1​0​0​7​/​9​7​
+8​-​3​-​6​4​2​-​2​3​2​4​7​-​3​_​5​ (2012).
+	53.	 Bacanin, N., Bezdan, T., Al-Turjman, F. & Rashid, T. A. Artificial flora optimization algorithm with genetically guided operators for 
+feature selection and neural network training. Int. J. Fuzzy Syst. 24 (5), 2538–2559. https://doi.org/10.1007/S40815-021-01191-X 
+(2022).
+	54.	 Pereira Dias, P., Bhagya Jayasinghe, L. & Waldmann, D. Machine learning in mix design of miscanthus lightweight concrete. 
+Constr. Build. Mater. 302 https://doi.org/10.1016/j.conbuildmat.2021.124191 (2021).
+	55.	 Raja, V. J. et al. Machine Learning Revolutionizing Performance Evaluation: Recent Developments and Breakthroughs, 2nd 
+International Conference on Sustainable Computing and Smart Systems, ICSCSS 2024 - Proceedings, pp. 780–785, (2024). ​h​t​t​p​s​:​/​/​d​o​
+i​.​o​r​g​/​1​0​.​1​1​0​9​/​I​C​S​C​S​S​6​0​6​6​0​.​2​0​2​4​.​1​0​6​2​5​1​0​3​
+	56.	 Li, F., Etienne, A., Siadat, A. & Vernadat, F. BCVR: A methodological framework for industrial performance management and 
+decision-support, Proceedings of 2015 International Conference on Industrial Engineering and Systems Management, IEEE IESM 
+2015, pp. 1258–1267, https://doi.org/10.1109/IESM.2015.7380314 (2016).
+	57.	 Cova, T. F. G. G. et al. Seeing is believing: A graphical reference framework for multi-criteria evaluation. Evaluation 23 (4), 479–
+494. https://doi.org/10.1177/1356389017733336 (2017).
+	58.	 Mapping strategies and performance evaluation of research organizations | Request PDF. Accessed: Nov. 21, 2024. [Online]. 
+Available: ​h​t​t​p​s​:​/​/​w​w​w​.​r​e​s​e​a​r​c​h​g​a​t​e​.​n​e​t​/​p​u​b​l​i​c​a​t​i​o​n​/​2​6​1​8​5​9​0​2​2​_​M​a​p​p​i​n​g​_​s​t​r​a​t​e​g​i​e​s​_​a​n​d​_​p​e​r​f​o​r​m​a​n​c​e​_​e​v​a​l​u​a​t​i​o​n​_​o​f​_​r​e​s​e​a​r​c​h​
+_​o​r​g​a​n​i​z​a​t​i​o​n​s
+	59.	 Iyer, N. R. & Vijayalakshmi, S. Analytical framework for performance evaluation of research organizations. Res. J. Appl. Sci. Eng. 
+Technol. 7 (15), 3134–3144. https://doi.org/10.19026/rjaset.7.652 (2014).
+	60.	 Wartika, F. L., Gaol, A., Nugroho & Abbas, B. S. Application of bayesian regularization algorithm for evaluation of performance 
+software complexity prediction model based on requirement. Int. J. Recent. Technol. Eng. 8 (3), 2530–2535. ​h​t​t​p​s​:​/​/​d​o​i​.​o​r​g​/​1​0​.​3​5​9​
+4​0​/​I​J​R​T​E​.​C​4​7​1​5​.​0​9​8​3​1​9​ (2019).
+	61.	 Yager, R. R. & Alajlan, N. A note on mean absolute deviation. Inf. Sci. (N Y). 279, 632–641. https://doi.org/10.1016/j.ins.2014.04.016 
+(2014).
+	62.	 Arachchige, C. N. P. G. & Prendergast, L. A. Confidence intervals for median absolute deviations, Oct. Accessed: Nov. 21, 2024. 
+[Online]. (2019). Available: http://arxiv.org/abs/1910.00229
+	63.	 Robeson, S. M. & Willmott, C. J. Decomposition of the mean absolute error (MAE) into systematic and unsystematic components. 
+PLoS One. 18, 2. https://doi.org/10.1371/journal.pone.0279774 (2023).
+	64.	 Benesty, J., Chen, J., Huang, Y. & Cohen, I. Mean-squared error criterion, vol. 2. (2009). ​h​t​t​p​s​:​/​/​d​o​i​.​o​r​g​/​1​0​.​1​0​0​7​/​9​7​8​-​3​-​6​4​2​-​0​0​2​9​6​-​0​
+_​4​
+	65.	 Chicco, D., Warrens, M. J. & Jurman, G. The coefficient of determination R-squared is more informative than SMAPE, MAE, 
+MAPE, MSE and RMSE in regression analysis evaluation. PeerJ Comput. Sci. 7, 1–24. https://doi.org/10.7717/PEERJ-CS.623 
+(2021).
+	66.	 Kasuya, E. On the use of r and r squared in correlation and regression. Ecol. Res. 34 (1), 235–236. ​h​t​t​p​s​:​/​/​d​o​i​.​o​r​g​/​1​0​.​1​1​1​1​/​1​4​4​0​-​1​7​
+0​3​.​1​0​1​1​ (2019).
+	67.	 Berggren, M. Coefficients of determination measured on the same scale as the outcome: alternatives to R2 that use standard 
+deviations instead of explained variance, (2023). https://doi.org/10.31234/OSF.IO/SVUF8
+	68.	 Xu, X., Du, H. & Lian, Z. Discussion on regression analysis with small determination coefficient in human-environment researches. 
+Indoor Air. 32 (10). https://doi.org/10.1111/ina.13117 (2022).
+	69.	 Hughes, G., Choudhury, R. A. & McRoberts, N. Summary measures of predictive power associated with logistic regression models 
+of disease risk. Phytopathology 109 (5), 712–715. https://doi.org/10.1094/PHYTO-09-18-0356-LE (2019).
+	70.	 Salem, N. & Hussein, S. Data dimensional reduction and principal components analysis, in Procedia Computer Science, Elsevier 
+B.V., pp. 292–299. (2019). https://doi.org/10.1016/j.procs.2019.12.111
+	71.	 Lever, J., Krzywinski, M. & Altman, N. Points of Significance: Principal component analysis. Nature Publishing Group. ​h​t​t​p​s​:​/​/​d​o​i​.​
+o​r​g​/​1​0​.​1​0​3​8​/​n​m​e​t​h​.​4​3​4​6​ (2017).
+Scientific Reports |        (2025) 15:38882 
+18
+| https://doi.org/10.1038/s41598-025-22786-6
+www.nature.com/scientificreports/
+	72.	 Abdullah, S. M. et al. Optimizing traffic flow in smart cities: soft GRU-Based recurrent neural networks for enhanced congestion 
+prediction using deep learning. Sustainability 15 (7), 5949. https://doi.org/10.3390/SU15075949 (2023).
+	73.	 Khafaga, D. S. et al. An Al-Biruni Earth radius Optimization-Based deep convolutional neural network for classifying Monkeypox 
+disease. Diagnostics 12 (11), 2892. https://doi.org/10.3390/DIAGNOSTICS12112892 (2022).
+	74.	 Kesarwani, A., Das, S., Kisku, D. R. & Dalui, M. Dual mode information fusion with pre-trained CNN models and transformer for 
+video-based non-invasive anaemia detection. Biomed. Signal. Process. Control. 88, 105592. ​h​t​t​p​s​:​/​/​d​o​i​.​o​r​g​/​1​0​.​1​0​1​6​/​J​.​B​S​P​C​.​2​0​2​3​.​1​0​
+5​5​9​2​ (2024).
+	75.	 Das, S., Kesarwani, A., Kisku, D. R. & Dalui, M. Attention enabled precise haemoglobin prediction: A GNN based non-invasive 
+approach. Biomed. Signal. Process. Control. 105, 107604. https://doi.org/10.1016/J.BSPC.2025.107604 (2025).
+	76.	 El-Kenawy, E. S. M. et al. Metaheuristic optimization for improving weed detection in wheat images captured by drones. 
+Mathematics 10 (23), 4421. https://doi.org/10.3390/MATH10234421 (2022).
+	77.	 Abdelhamid, A. A. et al. Innovative feature selection method based on hybrid sine cosine and dipper throated optimization 
+algorithms. IEEE Access. 11, 79750–79776. https://doi.org/10.1109/ACCESS.2023.3298955 (2023).
+	78.	 Schoeller, D. A. & Van Santen, E. Measurement of energy expenditure in humans by the doubly labeled water method, [Online]. 
+(2018). Available: www.physiology.org/journal/jappl
+Acknowledgements
+The authors would like to thank all the volunteers who participated in this study.
+Author contributions
+Z.U. conceptualized the study, conducted the data collection, and performed the initial statistical analysis. B.Ç. 
+supervised the study design, contributed to the development and interpretation of the machine learning models, 
+and guided the evaluation of results. Z.U. and B.Ç. jointly wrote the main manuscript text and prepared all fig­
+ures and tables. All authors reviewed and approved the final manuscript.
+Funding
+This study was supported by the TÜBİTAK 2211-C 2023 (Application No: 1649B032306381) doctoral scholar­
+ship program and the project numbered 38175 under the call code TUSEB-2023-A4-04.
+Declarations
+Competing interests
+The authors declare no competing interests.
+Human ethics and consent to participate
+This study was conducted per the ethical standards of the institutional and/or national research committee and 
+with the 1964 Helsinki Declaration and its later amendments or comparable ethical standards. Ethical approval 
+was obtained from the Erciyes University Faculty of Medicine Clinical Research Ethics Committee (Approval 
+Number: 2023/424, Approval Date: 14.06.2023). Written informed consent was obtained from all individual 
+participants included in the study. Permission for data collection was granted by the Rectorate of Sakarya 
+University (Document No: E-35955870-044-268791, Date: 03.08.2023).
+Additional information
+Supplementary Information The online version contains supplementary material available at ​h​t​t​p​s​:​/​/​d​o​i​.​o​r​g​/​1​
+0​.​1​0​3​8​/​s​4​1​5​9​8​-​0​2​5​-​2​2​7​8​6​-​6​.​
+Correspondence and requests for materials should be addressed to Z.U.
+Reprints and permissions information is available at www.nature.com/reprints.
+Publisher’s note  Springer Nature remains neutral with regard to jurisdictional claims in published maps and 
+institutional affiliations.
+Open Access   This article is licensed under a Creative Commons Attribution-NonCommercial-NoDerivatives 
+4.0 International License, which permits any non-commercial use, sharing, distribution and reproduction in 
+any medium or format, as long as you give appropriate credit to the original author(s) and the source, provide 
+a link to the Creative Commons licence, and indicate if you modified the licensed material. You do not have 
+permission under this licence to share adapted material derived from this article or parts of it. The images or 
+other third party material in this article are included in the article’s Creative Commons licence, unless indicated 
+otherwise in a credit line to the material. If material is not included in the article’s Creative Commons licence 
+and your intended use is not permitted by statutory regulation or exceeds the permitted use, you will need to 
+obtain permission directly from the copyright holder. To view a copy of this licence, visit ​h​t​t​p​:​/​/​c​r​e​a​t​i​v​e​c​o​m​m​o​
+n​s​.​o​r​g​/​l​i​c​e​n​s​e​s​/​b​y​-​n​c​-​n​d​/​4​.​0​/​.​
+© The Author(s) 2025 
+Scientific Reports |        (2025) 15:38882 
+19
+| https://doi.org/10.1038/s41598-025-22786-6
+www.nature.com/scientificreports/
