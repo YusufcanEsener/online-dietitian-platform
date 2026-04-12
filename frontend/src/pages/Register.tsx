@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Leaf, Loader2, Eye, EyeOff, Check, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { API_BASE_URL } from "@/lib/api";
 
 // Şifre güçlülük hesaplama
 const getPasswordStrength = (password: string): { score: number; label: string; color: string } => {
@@ -136,7 +137,7 @@ const Register = () => {
 
         setIsLoading(true);
         try {
-            const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/v1/auth/google`, {
+            const res = await fetch(`${API_BASE_URL}/api/v1/auth/google`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ token: credentialResponse.credential, role: "user" })
@@ -145,7 +146,7 @@ const Register = () => {
 
             if (data.access_token) {
                 localStorage.setItem('access_token', data.access_token);
-                const userRes = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/v1/auth/me/full`, {
+                const userRes = await fetch(`${API_BASE_URL}/api/v1/auth/me/full`, {
                     headers: { 'Authorization': `Bearer ${data.access_token}` }
                 });
                 const userData = await userRes.json();

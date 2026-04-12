@@ -1,0 +1,107 @@
+# docker-compose.yml - Online Dietitian Platform
+# Kullanım: docker compose up -d --build
+
+services:
+  # ========================
+  # MongoDB Veritabanı
+  # ========================
+  mongo:
+    image: mongo:7
+    container_name: dietitian-mongo
+    restart: unless-stopped
+    # Production'da dışarıya port açmıyoruz, sadece internal network
+    # Geliştirme için gerekirse ports: - "27017:27017" eklenebilir
+    expose:
+      - "27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - internal
+    healthcheck:
+      test: mongosh --eval "db.runCommand('ping').ok" --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ========================
+  # Backend API (FastAPI)
+  # ========================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: dietitian-backend
+    restart: unless-stopped
+    # Backend'e sadece internal network üzerinden erişilir (nginx proxy)
+    # Mobil uygulama doğrudan erişim için 8000 portunu açıyoruz
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    expose:
+      - "8000"
+    environment:
+      - SECRET_KEY=${SECRET_KEY}
+      - MONGODB_URL=${MONGODB_URL:-mongodb://mongo:27017}
+      - DATABASE_NAME=${DATABASE_NAME:-online_dietitian_v1}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - N8N_BASE_URL=${N8N_BASE_URL:-http://n8n:5678}
+      - CORS_ORIGINS=${CORS_ORIGINS}
+    depends_on:
+      mongo:
+        condition: service_healthy
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+  # ========================
+  # Frontend (React + Nginx Reverse Proxy)
+  # ========================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        # Production'da boş bırak — nginx proxy ile relative path kullanılır
+        # Development'da tam URL girilir: http://localhost:8000
+        - VITE_API_URL=${VITE_API_URL:-}
+        - VITE_GOOGLE_CLIENT_ID=${VITE_GOOGLE_CLIENT_ID}
+    container_name: dietitian-frontend
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_PORT:-3000}:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - internal
+
+  # ========================
+  # n8n Otomasyon
+  # ========================
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: dietitian-n8n
+    restart: unless-stopped
+    ports:
+      - "5678:5678"
+    expose:
+      - "5678"
+    volumes:
+      - n8n_data:/home/node/.n8n
+    environment:
+      - WEBHOOK_URL=${N8N_WEBHOOK_URL:-http://n8n:5678/}
+      - N8N_HOST=0.0.0.0
+    networks:
+      - internal
+
+networks:
+  internal:
+    driver: bridge
+
+volumes:
+  mongo_data:
+  n8n_data:

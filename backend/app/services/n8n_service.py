@@ -4,13 +4,16 @@ n8n AI Service - Webhook üzerinden n8n'e istek gönderir
 import httpx
 from typing import Optional, Dict, Any
 from datetime import datetime, date
+from app.core.config import settings
 
 
 class N8NService:
     """n8n webhook'a istek gönderen servis"""
     
-    def __init__(self, webhook_url: str = "http://localhost:5678/webhook/ai-analyze"):
-        self.webhook_url = webhook_url
+    def __init__(self):
+        # n8n base URL env'den okunur, sondaki slash temizlenir
+        self.base_url = settings.N8N_BASE_URL.rstrip("/")
+        self.webhook_url = f"{self.base_url}/webhook/ai-analyze"
         self.timeout = 60.0  # AI yanıtı için uzun timeout
     
     async def analyze_member(self, member_data: Dict[str, Any]) -> Dict[str, Any]:
@@ -164,7 +167,7 @@ class N8NService:
         Returns:
             AI'ın skor ve öneriler içeren yanıtı
         """
-        webhook_url = "http://localhost:5678/webhook/ai-weekly-progress"
+        webhook_url = f"{self.base_url}/webhook/ai-weekly-progress"
         
         try:
             async with httpx.AsyncClient(timeout=self.timeout) as client:
@@ -224,7 +227,7 @@ class N8NService:
         Returns:
             AI'ın önceliklendirilmiş rapor yanıtı
         """
-        webhook_url = "http://localhost:5678/webhook/ai-daily-report"
+        webhook_url = f"{self.base_url}/webhook/ai-daily-report"
         
         try:
             async with httpx.AsyncClient(timeout=90.0) as client:  # Toplu işlem için daha uzun timeout
@@ -299,7 +302,7 @@ class N8NService:
         Returns:
             AI'ın oluşturduğu beslenme programı (daily_targets, meals)
         """
-        webhook_url = "http://localhost:5678/webhook/ai-generate-plan"
+        webhook_url = f"{self.base_url}/webhook/ai-generate-plan"
         
         try:
             async with httpx.AsyncClient(timeout=90.0) as client:
@@ -388,7 +391,7 @@ class N8NService:
         
         n8n'deki webhook3'ü tetikler ve sonucu döner
         """
-        webhook_url = "http://localhost:5678/webhook/agentic-manual-trigger"
+        webhook_url = f"{self.base_url}/webhook/agentic-manual-trigger"
         
         try:
             async with httpx.AsyncClient(timeout=90.0) as client:

@@ -1,6 +1,8 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+// API base URL — nginx proxy ile /api/v1 otomatik backend'e gider
+// Production'da boş bırak (relative path), development'da tam URL ver
+export const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
 const api = axios.create({
     baseURL: `${API_BASE_URL}/api/v1`,

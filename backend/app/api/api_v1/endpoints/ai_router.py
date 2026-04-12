@@ -11,6 +11,7 @@ from app.models.daily_log import DailyLog
 from app.models.agentic_report import AgenticReport, AgenticMemberStatus
 from app.api.api_v1.endpoints.auth import get_current_user
 from app.services.n8n_service import n8n_service
+from app.core.config import settings
 
 router = APIRouter()
 
@@ -881,7 +882,7 @@ async def send_agentic_alert(
         return {"success": False, "error": "Danışan bulunamadı"}
     
     # n8n webhook'a gönder
-    webhook_url = "http://localhost:5678/webhook/agentic-critical-alert"
+    webhook_url = f"{settings.N8N_BASE_URL.rstrip('/')}/webhook/agentic-critical-alert"
     
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:

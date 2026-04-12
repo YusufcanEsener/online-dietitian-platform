@@ -32,6 +32,9 @@ bun.lockb
 .env
 .env.local
 .env.*.local
+.env.*
+# Sadece example dosyası repo'da bulunur
+!.env.example
 
 # =====================
 # IDE / Editor

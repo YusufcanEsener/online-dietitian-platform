@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Leaf, Loader2, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { API_BASE_URL } from "@/lib/api";
 
 const Login = () => {
     const navigate = useNavigate();
@@ -78,7 +79,7 @@ const Login = () => {
 
         setIsLoading(true);
         try {
-            const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/v1/auth/google`, {
+            const res = await fetch(`${API_BASE_URL}/api/v1/auth/google`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ token: credentialResponse.credential })
@@ -87,7 +88,7 @@ const Login = () => {
 
             if (data.access_token) {
                 localStorage.setItem('access_token', data.access_token);
-                const userRes = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/v1/auth/me/full`, {
+                const userRes = await fetch(`${API_BASE_URL}/api/v1/auth/me/full`, {
                     headers: { 'Authorization': `Bearer ${data.access_token}` }
                 });
                 const userData = await userRes.json();
