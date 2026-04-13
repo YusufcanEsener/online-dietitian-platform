@@ -1,27 +1,42 @@
-# docker-compose.yml - Online Dietitian Platform
-# Kullanım: docker compose up -d --build
+# docker-compose.yml - Online Dietitian Platform (SECURED)
+# Kullanım: docker compose --env-file .env.production up -d --build
 
 services:
   # ========================
-  # MongoDB Veritabanı
+  # MongoDB Veritabanı (INTERNAL ONLY)
   # ========================
   mongo:
     image: mongo:7
     container_name: dietitian-mongo
     restart: unless-stopped
-    # Production'da dışarıya port açmıyoruz, sadece internal network
-    # Geliştirme için gerekirse ports: - "27017:27017" eklenebilir
+    # GÜVENLIK: Dış dünyaya port AÇILMAZ. Sadece internal network.
+    # "ports" tanımı YOK — bu sayede 27017 dışarıdan erişilemez.
     expose:
       - "27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+      MONGO_INITDB_DATABASE: ${DATABASE_NAME:-online_dietitian_v1}
     volumes:
       - mongo_data:/data/db
+      - ./mongod.conf:/etc/mongod.conf:ro
+    command: ["mongod", "--config", "/etc/mongod.conf"]
     networks:
       - internal
+    security_opt:
+      - no-new-privileges:true
     healthcheck:
-      test: mongosh --eval "db.runCommand('ping').ok" --quiet
+      test: >
+        mongosh
+        --username $${MONGO_INITDB_ROOT_USERNAME}
+        --password $${MONGO_INITDB_ROOT_PASSWORD}
+        --authenticationDatabase admin
+        --eval "db.runCommand('ping').ok"
+        --quiet
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 30s
 
   # ========================
   # Backend API (FastAPI)
@@ -32,15 +47,11 @@ services:
       dockerfile: Dockerfile
     container_name: dietitian-backend
     restart: unless-stopped
-    # Backend'e sadece internal network üzerinden erişilir (nginx proxy)
-    # Mobil uygulama doğrudan erişim için 8000 portunu açıyoruz
     ports:
-      - "${BACKEND_PORT:-8000}:8000"
-    expose:
-      - "8000"
+      - "${BACKEND_PORT:-3001}:8000"
     environment:
       - SECRET_KEY=${SECRET_KEY}
-      - MONGODB_URL=${MONGODB_URL:-mongodb://mongo:27017}
+      - MONGODB_URL=mongodb://${MONGO_ROOT_USERNAME}:${MONGO_ROOT_PASSWORD}@mongo:27017/${DATABASE_NAME:-online_dietitian_v1}?authSource=admin
       - DATABASE_NAME=${DATABASE_NAME:-online_dietitian_v1}
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
@@ -51,11 +62,17 @@ services:
         condition: service_healthy
     networks:
       - internal
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
       interval: 15s
       timeout: 5s
       retries: 3
+      start_period: 10s
 
   # ========================
   # Frontend (React + Nginx Reverse Proxy)
@@ -65,8 +82,6 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        # Production'da boş bırak — nginx proxy ile relative path kullanılır
-        # Development'da tam URL girilir: http://localhost:8000
         - VITE_API_URL=${VITE_API_URL:-}
         - VITE_GOOGLE_CLIENT_ID=${VITE_GOOGLE_CLIENT_ID}
     container_name: dietitian-frontend
@@ -78,16 +93,22 @@ services:
         condition: service_healthy
     networks:
       - internal
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /var/cache/nginx
+      - /var/run
 
   # ========================
-  # n8n Otomasyon
+  # n8n Otomasyon (INTERNAL)
   # ========================
   n8n:
     image: n8nio/n8n:latest
     container_name: dietitian-n8n
     restart: unless-stopped
-    ports:
-      - "5678:5678"
+    # GÜVENLIK: n8n'i dışarıya AÇMAYIN. Yalnızca internal network.
     expose:
       - "5678"
     volumes:
@@ -97,10 +118,13 @@ services:
       - N8N_HOST=0.0.0.0
     networks:
       - internal
+    security_opt:
+      - no-new-privileges:true
 
 networks:
   internal:
     driver: bridge
+    internal: false  # frontend dış erişim gerektirir
 
 volumes:
   mongo_data:

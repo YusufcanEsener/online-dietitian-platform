@@ -1,8 +1,12 @@
 """
-Admin hesabı oluşturma scripti.
-Kullanım: cd backend && venv\Scripts\python create_admin.py
+Admin hesabı oluşturma scripti (GÜVENLİ).
+Kullanım:
+  docker compose exec backend python -m scripts.create_admin
 """
 import asyncio
+import os
+import secrets
+import string
 from motor.motor_asyncio import AsyncIOMotorClient
 from beanie import init_beanie
 from app.core.config import settings
@@ -14,6 +18,13 @@ from app.models.daily_log import DailyLog
 from app.models.nutrition_plan import NutritionPlan
 from app.models.agentic_report import AgenticReport
 from app.models.notification import Notification
+
+
+def generate_strong_password(length: int = 24) -> str:
+    """Güçlü rastgele şifre oluştur."""
+    alphabet = string.ascii_letters + string.digits + "!@#$%^&*"
+    return ''.join(secrets.choice(alphabet) for _ in range(length))
+
 
 async def create_admin():
     client = AsyncIOMotorClient(settings.MONGODB_URL)
@@ -30,8 +41,8 @@ async def create_admin():
         ]
     )
     
-    email = "admin@diyetisyen.com"
-    password = "admin123"
+    email = os.environ.get("ADMIN_EMAIL", "admin@diyetisyen.com")
+    password = os.environ.get("ADMIN_PASSWORD", generate_strong_password())
     
     # Mevcut admin var mı kontrol et
     existing = await User.find_one(User.email == email)
@@ -60,6 +71,8 @@ async def create_admin():
     print(f"  Şifre   : {password}")
     print(f"  Ad      : {admin.full_name}")
     print(f"  ID      : {admin.id}")
+    print("=" * 50)
+    print("⚠️  Bu şifreyi kaydedin! Tekrar gösterilmeyecek.")
     print("=" * 50)
     
     client.close()
