@@ -1,4 +1,4 @@
-# Backend Dockerfile - FastAPI (Python 3.11) - SECURED
+# Backend Dockerfile - FastAPI (Python 3.11) - PRODUCTION HARDENED
 FROM python:3.11-slim
 
 # Güvenlik: root olmayan kullanıcı oluştur
@@ -23,5 +23,5 @@ USER appuser
 # Port
 EXPOSE 8000
 
-# Uvicorn ile başlat
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--no-access-log"]
+# Uvicorn — production: 2 worker, access log kapalı
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2", "--no-access-log"]

@@ -12,20 +12,27 @@ async def lifespan(app: FastAPI):
     yield
     # Shutdown (eğer gerekirse cleanup işlemleri buraya)
 
+# Production'da Swagger dokümantasyonu kapatılır
+openapi_url = f"{settings.API_V1_STR}/openapi.json" if not settings.is_production else None
+docs_url = "/docs" if not settings.is_production else None
+redoc_url = "/redoc" if not settings.is_production else None
+
 app = FastAPI(
     title=settings.PROJECT_NAME,
-    openapi_url=f"{settings.API_V1_STR}/openapi.json",
+    openapi_url=openapi_url,
+    docs_url=docs_url,
+    redoc_url=redoc_url,
     lifespan=lifespan
 )
 
-# CORS Middleware - Frontend'in backend'e erişmesi için gerekli
+# CORS Middleware — sadece gerekli method/header'lar açık
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins_list,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-    expose_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type", "Accept", "Origin", "X-Requested-With"],
+    expose_headers=["Content-Length"],
 )
 
 @app.get("/")

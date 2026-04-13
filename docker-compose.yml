@@ -1,5 +1,9 @@
-# docker-compose.yml - Online Dietitian Platform (SECURED)
+# docker-compose.yml - Online Dietitian Platform (PRODUCTION HARDENED)
 # Kullanım: docker compose --env-file .env.production up -d --build
+#
+# Network mimarisi:
+#   frontend-net: frontend ↔ backend (dış erişim açık)
+#   backend-net:  backend ↔ mongo ↔ n8n (tamamen izole, dış erişim YOK)
 
 services:
   # ========================
@@ -9,30 +13,27 @@ services:
     image: mongo:7
     container_name: dietitian-mongo
     restart: unless-stopped
-    # GÜVENLIK: Dış dünyaya port AÇILMAZ. Sadece internal network.
-    # "ports" tanımı YOK — bu sayede 27017 dışarıdan erişilemez.
+    # GÜVENLIK: Port dışarıya AÇILMAZ. Sadece backend-net.
     expose:
       - "27017"
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
       MONGO_INITDB_DATABASE: ${DATABASE_NAME:-online_dietitian_v1}
+      MONGO_APP_USERNAME: ${MONGO_APP_USERNAME:-dietitian_app}
+      MONGO_APP_PASSWORD: ${MONGO_APP_PASSWORD}
     volumes:
       - mongo_data:/data/db
+      - mongo_log:/var/log/mongodb
       - ./mongod.conf:/etc/mongod.conf:ro
+      - ./mongo-init.js:/docker-entrypoint-initdb.d/01-create-app-user.js:ro
     command: ["mongod", "--config", "/etc/mongod.conf"]
     networks:
-      - internal
+      - backend-net
     security_opt:
       - no-new-privileges:true
     healthcheck:
-      test: >
-        mongosh
-        --username $${MONGO_INITDB_ROOT_USERNAME}
-        --password $${MONGO_INITDB_ROOT_PASSWORD}
-        --authenticationDatabase admin
-        --eval "db.runCommand('ping').ok"
-        --quiet
+      test: ["CMD", "mongosh", "--username", "${MONGO_ROOT_USERNAME}", "--password", "${MONGO_ROOT_PASSWORD}", "--authenticationDatabase", "admin", "--eval", "db.runCommand('ping').ok", "--quiet"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -47,11 +48,13 @@ services:
       dockerfile: Dockerfile
     container_name: dietitian-backend
     restart: unless-stopped
-    ports:
-      - "${BACKEND_PORT:-3001}:8000"
+    # GÜVENLIK: Backend portu dışarıya AÇILMAZ. Nginx proxy kullanılır.
+    expose:
+      - "8000"
     environment:
+      - NODE_ENV=${NODE_ENV:-production}
       - SECRET_KEY=${SECRET_KEY}
-      - MONGODB_URL=mongodb://${MONGO_ROOT_USERNAME}:${MONGO_ROOT_PASSWORD}@mongo:27017/${DATABASE_NAME:-online_dietitian_v1}?authSource=admin
+      - MONGODB_URL=mongodb://${MONGO_APP_USERNAME:-dietitian_app}:${MONGO_APP_PASSWORD}@mongo:27017/${DATABASE_NAME:-online_dietitian_v1}?authSource=${DATABASE_NAME:-online_dietitian_v1}
       - DATABASE_NAME=${DATABASE_NAME:-online_dietitian_v1}
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
@@ -61,7 +64,8 @@ services:
       mongo:
         condition: service_healthy
     networks:
-      - internal
+      - frontend-net
+      - backend-net
     security_opt:
       - no-new-privileges:true
     read_only: true
@@ -72,7 +76,7 @@ services:
       interval: 15s
       timeout: 5s
       retries: 3
-      start_period: 10s
+      start_period: 15s
 
   # ========================
   # Frontend (React + Nginx Reverse Proxy)
@@ -92,7 +96,7 @@ services:
       backend:
         condition: service_healthy
     networks:
-      - internal
+      - frontend-net
     security_opt:
       - no-new-privileges:true
     read_only: true
@@ -102,30 +106,45 @@ services:
       - /var/run
 
   # ========================
-  # n8n Otomasyon (INTERNAL)
+  # n8n Otomasyon (INTERNAL + Basic Auth)
   # ========================
   n8n:
     image: n8nio/n8n:latest
     container_name: dietitian-n8n
     restart: unless-stopped
-    # GÜVENLIK: n8n'i dışarıya AÇMAYIN. Yalnızca internal network.
-    expose:
-      - "5678"
+    # n8n yönetim portu — basic auth korumalı
+    ports:
+      - "127.0.0.1:5678:5678"
     volumes:
       - n8n_data:/home/node/.n8n
     environment:
       - WEBHOOK_URL=${N8N_WEBHOOK_URL:-http://n8n:5678/}
       - N8N_HOST=0.0.0.0
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=${N8N_BASIC_AUTH_USER:-admin}
+      - N8N_BASIC_AUTH_PASSWORD=${N8N_BASIC_AUTH_PASSWORD}
     networks:
-      - internal
+      - backend-net
     security_opt:
       - no-new-privileges:true
 
+# ========================
+# Network Tanımları
+# ========================
 networks:
-  internal:
+  # Frontend ↔ Backend iletişimi (dış erişim gerekli — port mapping)
+  frontend-net:
     driver: bridge
-    internal: false  # frontend dış erişim gerektirir
 
+  # Backend ↔ Mongo ↔ n8n (tamamen izole — dış ağ erişimi YOK)
+  backend-net:
+    driver: bridge
+    internal: true
+
+# ========================
+# Volume Tanımları
+# ========================
 volumes:
   mongo_data:
+  mongo_log:
   n8n_data:
