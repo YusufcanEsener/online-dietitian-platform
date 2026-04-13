@@ -6,6 +6,20 @@ Diyetisyen ve danışanları bir araya getiren, yapay zekâ destekli online besl
 
 Bu platform, diyetisyenlerin danışanlarını uzaktan takip etmesini, kişiye özel beslenme planları oluşturmasını ve yapay zekâ desteğiyle beslenme süreçlerini yönetmesini sağlar. Üç farklı kullanıcı rolü (Admin, Diyetisyen, Üye) desteklenmektedir.
 
+---
+
+## 🏗️ Yeni: Mimari ve Güvenlik Özellikleri
+
+Proje son güncellemelerle birlikte kurumsal standartlarda bir yapıya kavuşturulmuştur:
+
+-   **Docker Containerization:** Tüm servisler (Backend, Frontend, MongoDB, n8n) izole container'lar üzerinde çalışır.
+-   **Gelişmiş Güvenlik:** 
+    -   **MongoDB Hardening:** Veritabanı dış dünyaya kapalıdır, sadece internal network üzerinden erişilebilir.
+    -   **Root Auth:** Güçlü şifreleme ve root kullanıcı yönetimi eklenmiştir.
+-   **CI/CD Pipeline:** GitHub Actions ile her `push` işleminde sunucuya otomatik deployment yapılır.
+
+---
+
 ## 🧩 Özellikler
 
 - **Rol Tabanlı Kimlik Doğrulama** — Admin, Diyetisyen ve Üye rolleri (JWT + Google OAuth)
@@ -26,9 +40,8 @@ Bu platform, diyetisyenlerin danışanlarını uzaktan takip etmesini, kişiye �
 | **Frontend (Web)** | React, TypeScript, Vite, Tailwind CSS, shadcn/ui |
 | **Frontend (Mobil)** | React Native, Expo |
 | **Backend** | Python, FastAPI, Beanie (MongoDB ODM) |
-| **Veritabanı** | MongoDB |
+| **Veritabanı** | MongoDB (Secured) |
 | **Otomasyon & AI** | n8n (workflow otomasyon), AI API entegrasyonu |
-| **Kimlik Doğrulama** | JWT, Google OAuth |
 | **DevOps & CI/CD** | Docker, Docker Compose, Nginx, GitHub Actions |
 
 ## 📁 Proje Yapısı
@@ -39,61 +52,46 @@ Bu platform, diyetisyenlerin danışanlarını uzaktan takip etmesini, kişiye �
 ├── backend/                  # FastAPI Backend
 │   ├── app/
 │   │   ├── api/api_v1/       # REST API endpoint'leri
-│   │   │   └── endpoints/    # auth, members, dietitians, chat, ai, admin...
 │   │   ├── core/             # Konfigürasyon, veritabanı, güvenlik
 │   │   ├── models/           # MongoDB doküman modelleri
 │   │   ├── schemas/          # Pydantic request/response şemaları
 │   │   └── services/         # İş mantığı (n8n, AI servisleri)
 │   ├── scripts/              # Yardımcı scriptler (seed data)
 │   ├── Dockerfile            # Backend uygulaması için Docker image config
-│   └── requirements.txt
-│
 ├── frontend/                 # React Web Uygulaması
 │   ├── src/
-│   │   ├── components/       # UI bileşenleri (dashboard, layout, ai, ui)
-│   │   ├── pages/            # Sayfa bileşenleri (24 sayfa)
-│   │   ├── services/         # API servis katmanı
-│   │   ├── contexts/         # Auth & Notification context
-│   │   └── hooks/            # Custom React hook'ları
 │   ├── Dockerfile            # Frontend (Nginx) için Docker image config
 │   ├── nginx.conf            # Nginx sunucu yapılandırması
-│   └── package.json
-│
 └── front-end-mobile/         # React Native Mobil Uygulama (Expo)
-    ├── src/
-    │   ├── navigation/       # Yönlendirme (Dietitian & Member Navigator)
-    │   ├── screens/          # Mobil sayfalar (Detaylı Profil, Kilo Takibi vs.)
-    │   └── services/         # API servis çağrıları
-    ├── app.json              # Expo mobil temel ayarları
-    └── package.json
 ```
 
 ## 🐳 Docker ile Kurulum (Önerilen)
 
-Projeyi Docker Compose kullanarak çok hızlı test edebilirsiniz. (Backend, Frontend ve Veritabanı dahil)
+Projeyi Docker Compose kullanarak çok hızlı test edebilirsiniz.
 
 ```bash
 docker-compose up -d --build
 ```
-*Frontend: `http://localhost:80`*
-*Backend API: `http://localhost:8000`*
+*   **Web Portal:** `http://localhost:3000`
+*   **API Dökümantasyonu:** `http://localhost:3001/docs`
 
+## 🛠️ GitHub Actions (Otomatik Deploy)
 
-## 🚀 Kurulum
+Sunucuya otomatik kurulum için GitHub repository sayfanızda **Settings > Secrets > Actions** altına şu değişkenleri ekleyin:
+- `SERVER_HOST`, `SERVER_USER`, `SSH_PRIVATE_KEY`
+
+## 🚀 Manuel Kurulum
 
 ### Backend
-
 ```bash
 cd backend
 python -m venv venv
-venv\Scripts\activate          # Windows
-# source venv/bin/activate     # macOS/Linux
+source venv/bin/activate # Windows için venv\Scripts\activate
 pip install -r requirements.txt
 uvicorn app.main:app --reload
 ```
 
 ### Frontend (Web)
-
 ```bash
 cd frontend
 npm install
@@ -101,7 +99,6 @@ npm run dev
 ```
 
 ### Mobil Uygulama
-
 ```bash
 cd front-end-mobile
 npm install
@@ -111,9 +108,7 @@ npx expo start
 > **Not:** `.env` dosyasını `.env.example` referans alarak oluşturun.
 
 ## 📸 Ekran Görüntüleri
-
 *Yakında eklenecek.*
 
 ## 👤 Geliştirici
-
 **Yusufcan Esener** — [GitHub](https://github.com/YusufcanEsener)
