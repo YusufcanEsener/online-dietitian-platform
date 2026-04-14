@@ -196,7 +196,7 @@ const Login = () => {
                             </button>
                         </div>
                     </div>
-                    <Button type="submit" variant="neon" className="w-full h-12" disabled={isLoading}>
+                    <Button type="submit" variant="default" className="w-full h-12 text-white font-bold relative z-10" disabled={isLoading}>
                         {isLoading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Giriş yapılıyor...</> : "Giriş Yap"}
                     </Button>
                 </form>

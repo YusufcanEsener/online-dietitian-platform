@@ -16,7 +16,8 @@ import {
     Eye,
     Sparkles,
     Zap,
-    Flame
+    Flame,
+    HelpCircle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
@@ -152,6 +153,17 @@ const DietitianDashboard = () => {
                         <span className="font-medium">Profilim</span>
                     </Link>
                 </nav>
+
+                {/* Guide & Help Section */}
+                <div className="px-4 pb-4">
+                    <Link
+                        to="/guide/dietitian"
+                        className="flex items-center gap-3 px-4 py-3 rounded-xl text-primary bg-primary/5 hover:bg-primary/15 transition-all duration-300 border border-primary/20"
+                    >
+                        <HelpCircle className="w-5 h-5" />
+                        <span className="font-medium text-sm">Nasıl Çalışır?</span>
+                    </Link>
+                </div>
 
                 <div className="p-4 border-t border-sidebar-border">
                     <div className="flex items-center gap-3 p-3 rounded-xl bg-sidebar-accent">

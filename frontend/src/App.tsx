@@ -35,6 +35,10 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
 
+// Rehber Sayfaları
+import MemberGuide from "./pages/MemberGuide";
+import DietitianGuide from "./pages/DietitianGuide";
+
 const queryClient = new QueryClient();
 const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
 
@@ -73,6 +77,10 @@ const App = () => (
                 <Route path="/privacy" element={<PrivacyPolicy />} />
                 <Route path="/about" element={<About />} />
                 <Route path="/contact" element={<Contact />} />
+
+                {/* Rehber Sayfaları */}
+                <Route path="/guide/member" element={<MemberGuide />} />
+                <Route path="/guide/dietitian" element={<DietitianGuide />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </BrowserRouter>

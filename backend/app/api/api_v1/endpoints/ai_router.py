@@ -464,250 +464,22 @@ async def generate_plan_with_ai(
     # n8n'e gönder ve AI yanıtı al
     result = await n8n_service.generate_nutrition_plan(n8n_payload)
     
-    import json as json_lib
-    import re
-    
-    # ============================================================
-    # 1. daily_targets'ı Python'da hesapla
-    #    (n8n JS ifadelerini değerlendiremiyor, biz yapıyoruz)
-    # ============================================================
-    target_cal = request.target_calories
-    goal = request.goal
-    
-    if goal == "weight_loss":
-        protein = round((0.35 * target_cal) / 4)
-        fat     = round((0.30 * target_cal) / 9)
-    elif goal == "muscle_gain":
-        protein = round((0.40 * target_cal) / 4)
-        fat     = round((0.25 * target_cal) / 9)
-    else:  # maintenance
-        protein = round((0.25 * target_cal) / 4)
-        fat     = round((0.30 * target_cal) / 9)
-    carbs = round((target_cal - (protein * 4) - (fat * 9)) / 4)
-    
-    computed_targets = {
-        "calories": target_cal,
-        "protein":  protein,
-        "carbs":    carbs,
-        "fat":      fat,
-        "water":    10
-    }
-    print(f"[AI Generate Plan] computed_targets={computed_targets}")
-    
-    # ============================================================
-    # 2. Meals listesini n8n yanıtından çıkarmayı dene
-    #    n8n text içinde static JSON meals array barındırıyor
-    # ============================================================
-    extracted_meals = None
-    
-    if result.get("success"):
-        data = result.get("data") or {}
-        
-        # text/output key içinden ham string'i al
-        raw_text = None
-        if isinstance(data, dict):
-            for key in ("text", "output"):
-                if key in data and isinstance(data[key], str):
-                    raw_text = data[key]
-                    break
-            # Zaten dict ise meals doğrudan parse edilebilir
-            if not raw_text and "meals" in data:
-                extracted_meals = data["meals"]
-        elif isinstance(data, str):
-            raw_text = data
-        
-        if raw_text and extracted_meals is None:
-            # ```json ... ``` bloğunu temizle
-            cleaned = raw_text.strip()
-            if cleaned.startswith("```"):
-                cleaned = re.sub(r'^```(?:json)?\s*\n?', '', cleaned)
-                cleaned = re.sub(r'\n?```\s*$', '', cleaned)
-            
-            # "meals": [ ... ] array'ini bul ve parse et
-            # JS expression'ları içermeyen bu bölüm static JSON olmalı
-            meals_match = re.search(r'"meals"\s*:\s*(\[.*\])', cleaned, re.DOTALL)
-            if meals_match:
-                meals_str = meals_match.group(1)
-                # ${...} gibi kalıntı JS ifadelerini temizle (meals'de olmayabilir)
-                meals_str_clean = re.sub(r'\$\{[^}]*\}', 'null', meals_str)
-                try:
-                    extracted_meals = json_lib.loads(meals_str_clean)
-                    print(f"[AI Generate Plan] extracted {len(extracted_meals)} meals from n8n text")
-                except Exception as e:
-                    print(f"[AI Generate Plan] meals parse error: {e}")
-    
-    # ============================================================
-    # 3. Meals parse edilemezse varsayılan plan kullan
-    # ============================================================
-    if not extracted_meals:
-        print("[AI Generate Plan] using default meal plan")
-        extracted_meals = _get_default_meals(goal, request.menu_type or "daily")
-    
-    def parse_n8n_amount_template(amount: str, t_cal: int) -> str:
-        if not isinstance(amount, str) or '<%' not in amount:
-            return amount
-        try:
-            import re
-            matches = re.finditer(r'(?:if\s*\(\$json\.target_calories\s*(<=|<|>|>=|==)\s*(\d+)\)\s*\{|else\s*\{)\s*print\([\'"]([^\'"]+)[\'"]\);?\s*\}', amount)
-            for match in matches:
-                operator = match.group(1)
-                val_str = match.group(2)
-                print_val = match.group(3)
-                
-                if operator and val_str:
-                    val = int(val_str)
-                    if operator == '<=' and t_cal <= val: return print_val
-                    elif operator == '<' and t_cal < val: return print_val
-                    elif operator == '>=' and t_cal >= val: return print_val
-                    elif operator == '>' and t_cal > val: return print_val
-                    elif operator == '==' and t_cal == val: return print_val
-                else:
-                    return print_val
-            
-            fb = re.search(r'else\s*\{\s*print\([\'"]([^\'"]+)[\'"]\)', amount)
-            if fb: return fb.group(1)
-        except Exception as e:
-            print(f"[AI Generate Plan] Error parsing amount template: {e}")
-        return amount
-
-    if extracted_meals:
-        for meal in extracted_meals:
-            if "foods" in meal:
-                for food in meal["foods"]:
-                    amt = food.get("amount")
-                    if amt:
-                        food["amount"] = parse_n8n_amount_template(amt, target_cal)
-
-    return GeneratePlanResponse(
-        success=True,
-        daily_targets=computed_targets,
-        meals=extracted_meals
-    )
+    if result["success"]:
+        data = result.get("data", {})
+        return GeneratePlanResponse(
+            success=True,
+            daily_targets=data.get("daily_targets"),
+            meals=data.get("meals", [])
+        )
+    else:
+        return GeneratePlanResponse(
+            success=False,
+            error=result.get("error", "n8n bağlantı hatası")
+        )
 
     # (n8n başarısız ise zaten buraya ulaşılmaz; hata durumunu aşağıda yakala)
 
 
-def _get_default_meals(goal: str, menu_type: str = "daily") -> list:
-    """
-    n8n yanıtı parse edilemezse kullanılan varsayılan Türkçe öğün planı.
-    """
-    breakfast = {
-        "meal_type": "breakfast",
-        "time": "08:00",
-        "notes": "Güçlü bir başlangıç için dengeli kahvaltı.",
-        "foods": [
-            {"name": "Haşlanmış Yumurta", "amount": "2 adet"},
-            {"name": "Az Yağlı Beyaz Peynir", "amount": "50g"},
-            {"name": "Yeşil veya Siyah Zeytin", "amount": "5-6 adet"},
-            {"name": "Tam Buğday Ekmeği", "amount": "1-2 dilim"},
-            {"name": "Domates, Salatalık, Roka", "amount": "Bol miktarda"},
-            {"name": "Şekersiz Çay", "amount": "1 fincan"},
-        ]
-    }
-    snack1 = {
-        "meal_type": "snack",
-        "time": "10:30",
-        "notes": "Kan şekerini dengelemek için hafif ara öğün.",
-        "foods": [
-            {"name": "Mevsim Meyvesi", "amount": "1 porsiyon"},
-            {"name": "Çiğ Badem veya Ceviz", "amount": "10-12 adet"},
-        ]
-    }
-    snack2 = {
-        "meal_type": "snack",
-        "time": "15:30",
-        "notes": "Akşama kadar enerji için proteinli ara öğün.",
-        "foods": [
-            {"name": "Kefir veya Az Yağlı Yoğurt", "amount": "1 su bardağı"},
-            {"name": "Kuru Kayısı veya Kuru Erik", "amount": "2-3 adet"},
-        ]
-    }
-    
-    if goal == "muscle_gain":
-        lunch = {
-            "meal_type": "lunch",
-            "time": "12:30",
-            "notes": "Kas yapımı için yüksek proteinli öğle yemeği.",
-            "foods": [
-                {"name": "Izgara Tavuk Göğsü", "amount": "180-200g"},
-                {"name": "Pirinç Pilavı veya Bulgur", "amount": "1 kase (pişmiş)"},
-                {"name": "Zeytinyağlı Sebze", "amount": "1 porsiyon"},
-                {"name": "Az Yağlı Yoğurt", "amount": "1 kase"},
-            ]
-        }
-        dinner = {
-            "meal_type": "dinner",
-            "time": "19:00",
-            "notes": "Gece kasları için protein ağırlıklı akşam yemeği.",
-            "foods": [
-                {"name": "Somon veya Ton Balığı", "amount": "150-180g"},
-                {"name": "Zeytinyağlı Sebze Yemeği", "amount": "1 orta porsiyon"},
-                {"name": "Kinoa veya Karabuğday", "amount": "Yarım kase"},
-                {"name": "Az Yağlı Cacık", "amount": "1 kase"},
-            ]
-        }
-    elif goal == "weight_loss":
-        lunch = {
-            "meal_type": "lunch",
-            "time": "12:30",
-            "notes": "Düşük kalorili, doyurucu öğle yemeği.",
-            "foods": [
-                {"name": "Izgara Tavuk Göğsü", "amount": "120g"},
-                {"name": "Bulgur Pilavı", "amount": "Yarım kase (pişmiş)"},
-                {"name": "Bol Yeşillikli Mevsim Salata", "amount": "Büyük kase"},
-                {"name": "Ayran", "amount": "1 su bardağı"},
-            ]
-        }
-        dinner = {
-            "meal_type": "dinner",
-            "time": "19:00",
-            "notes": "Hafif ama besleyici akşam yemeği.",
-            "foods": [
-                {"name": "Zeytinyağlı Sebze Yemeği (pırasa/fasulye/ıspanak)", "amount": "1 orta porsiyon"},
-                {"name": "Az Yağlı Cacık", "amount": "1 küçük kase"},
-                {"name": "Tam Buğday Ekmeği", "amount": "1 dilim"},
-                {"name": "Bol Yeşil Salata", "amount": "Büyük kase"},
-            ]
-        }
-    else:  # maintenance
-        lunch = {
-            "meal_type": "lunch",
-            "time": "12:30",
-            "notes": "Dengeli öğle yemeği.",
-            "foods": [
-                {"name": "Izgara Tavuk veya Somon", "amount": "130-150g"},
-                {"name": "Bulgur veya Karabuğday", "amount": "Yarım kase"},
-                {"name": "Mevsim Salata", "amount": "Büyük kase"},
-                {"name": "Yoğurt", "amount": "1 kase"},
-            ]
-        }
-        dinner = {
-            "meal_type": "dinner",
-            "time": "19:00",
-            "notes": "Dengeli akşam yemeği.",
-            "foods": [
-                {"name": "Zeytinyağlı Sebze Yemeği", "amount": "1 orta porsiyon"},
-                {"name": "Mercimek veya Nohut", "amount": "Yarım kase"},
-                {"name": "Tam Buğday Ekmeği", "amount": "1 dilim"},
-                {"name": "Yeşil Salata", "amount": "Büyük kase"},
-            ]
-        }
-    
-    daily_plan = [breakfast, snack1, lunch, snack2, dinner]
-
-    if menu_type != "weekly":
-        return daily_plan
-
-    # Haftalık plan: 7 gün için varyasyonlar
-    days = ["Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi", "Pazar"]
-    weekly_meals = []
-    for day in days:
-        for meal in daily_plan:
-            weekly_meals.append({
-                **meal,
-                "notes": f"{day} – {meal.get('notes', '')}".strip(" –")
-            })
-    return weekly_meals
 
 
 
@@ -721,7 +493,7 @@ class AgenticMemberData(BaseModel):
     id: str
     name: str
     email: str
-    status: str  # critical, warning, good
+    status: str = "good"  # Default
     problem: str = None
     days_since_last_log: int
     program_status: str
@@ -810,57 +582,24 @@ async def get_agentic_report(
             elif days_until_end <= 3:
                 program_status = f"{days_until_end} gün kaldı"
         
-        # Durum belirleme
-        status = "good"
-        problem = None
-        recommendation = None
-        
-        if days_since_last_log >= 5:
-            status = "critical"
-            problem = f"{days_since_last_log} gündür giriş yok"
-            recommendation = "Danışanla acilen iletişime geçin"
-            critical_count += 1
-        elif days_since_last_log >= 3:
-            status = "warning"
-            problem = f"{days_since_last_log} gündür giriş yok"
-            recommendation = "Hatırlatma mesajı gönderin"
-            warning_count += 1
-        elif not active_plan:
-            status = "warning"
-            problem = "Aktif program yok"
-            recommendation = "Yeni program oluşturun"
-            warning_count += 1
-        elif calorie_compliance < 50:
-            status = "warning"
-            problem = f"Kalori uyumu düşük (%{int(calorie_compliance)})"
-            recommendation = "Beslenme alışkanlıklarını gözden geçirin"
-            warning_count += 1
-        else:
-            good_count += 1
-        
         members_data.append({
             "id": str(member.id),
             "name": member.full_name or "İsimsiz",
             "email": member.email,
-            "status": status,
-            "problem": problem,
             "days_since_last_log": days_since_last_log if days_since_last_log < 999 else None,
             "program_status": program_status,
-            "calorie_compliance": int(calorie_compliance),
-            "recommendation": recommendation
+            "calorie_compliance": int(calorie_compliance)
         })
-    
-    # Kritik olanları başa al
-    members_data.sort(key=lambda x: {"critical": 0, "warning": 1, "good": 2}[x["status"]])
+
     
     return AgenticReportResponse(
         success=True,
         dietitian_name=dietitian.full_name,
         report_date=datetime.now().strftime("%Y-%m-%d"),
         total_members=len(all_members),
-        critical_count=critical_count,
-        warning_count=warning_count,
-        good_count=good_count,
+        critical_count=0,
+        warning_count=0,
+        good_count=0,
         members=members_data
     )
 

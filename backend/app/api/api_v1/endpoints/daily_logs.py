@@ -14,8 +14,8 @@ async def get_today_log(current_user: User = Depends(get_current_user)) -> Any:
     if not isinstance(current_user, Member):
         raise HTTPException(status_code=400, detail="Not a member")
     
-    today = date.today()
-    log = await DailyLog.find_one({"member_id": str(current_user.id), "log_date": today})
+    today = date.today().isoformat()
+    log = await DailyLog.find_one(DailyLog.member_id == str(current_user.id), DailyLog.log_date == today)
     
     if not log:
         log = DailyLog(
@@ -49,8 +49,8 @@ async def update_today_log(
     if not isinstance(current_user, Member):
         raise HTTPException(status_code=400, detail="Not a member")
     
-    today = date.today()
-    log = await DailyLog.find_one({"member_id": str(current_user.id), "log_date": today})
+    today = date.today().isoformat()
+    log = await DailyLog.find_one(DailyLog.member_id == str(current_user.id), DailyLog.log_date == today)
     
     if not log:
         log = DailyLog(

@@ -239,36 +239,55 @@ class N8NService:
                 
                 if response.status_code == 200:
                     try:
-                        json_response = response.json()
+                        import json as json_lib
+                        import re
+                        raw_text = response.text
+                        print(f"[n8n daily-report] RAW RESPONSE: {raw_text[:1000]}")
+
+                        try:
+                            json_response = response.json()
+                        except json_lib.JSONDecodeError:
+                            print(f"[n8n daily-report] Not valid JSON, returning text. Text: {raw_text[:200]}")
+                            return {
+                                "success": True,
+                                "data": raw_text
+                            }
+
                         if isinstance(json_response, list) and len(json_response) > 0:
                             result = json_response[0]
                         else:
                             result = json_response
                         
-                        # n8n yanıtı "text" içinde JSON string olarak gelebilir
-                        if isinstance(result, dict) and "text" in result:
-                            text_content = result["text"]
-                            # JSON parse etmeye çalış
-                            import json
-                            import re
-                            cleaned = text_content.strip()
-                            if cleaned.startswith("```"):
-                                cleaned = re.sub(r'^```(?:json)?\s*\n?', '', cleaned)
-                                cleaned = re.sub(r'\n?```\s*$', '', cleaned)
-                            try:
-                                result = json.loads(cleaned)
-                            except json.JSONDecodeError:
-                                # Parse edilemezse text olarak dön
-                                pass
+                        if isinstance(result, dict) and "json" in result and "members" not in result:
+                            result = result["json"]
                         
+                        # n8n yanıtı "text" veya "output" içinde JSON string olarak gelebilir
+                        if isinstance(result, dict):
+                            for key in ("text", "output"):
+                                if key in result and isinstance(result[key], str):
+                                    text_content = result[key]
+                                    cleaned = text_content.strip()
+                                    if cleaned.startswith("```"):
+                                        cleaned = re.sub(r'^```(?:json)?\s*\n?', '', cleaned)
+                                        cleaned = re.sub(r'\n?```\s*$', '', cleaned)
+                                    try:
+                                        result = json_lib.loads(cleaned)
+                                        print(f"[n8n daily-report] parsed string from '{key}'")
+                                    except:
+                                        pass
+                                    break
+                        
+                        print(f"[n8n daily-report] FINAL result keys: {list(result.keys()) if isinstance(result, dict) else type(result).__name__}")
+
                         return {
                             "success": True,
                             "data": result
                         }
-                    except:
+                    except Exception as e:
+                        print(f"[n8n daily-report] PARSE ERROR: {e}")
                         return {
                             "success": False,
-                            "error": "n8n yanıtı parse edilemedi"
+                            "error": f"n8n yanıtı parse edilemedi: {str(e)}"
                         }
                 else:
                     return {
@@ -403,34 +422,57 @@ class N8NService:
                 
                 if response.status_code == 200:
                     try:
-                        json_response = response.json()
+                        import json as json_lib
+                        import re
+                        
+                        raw_text = response.text
+                        print(f"[n8n agentic-webhook] RAW RESPONSE: {raw_text[:1000]}")
+                        
+                        try:
+                            json_response = response.json()
+                        except json_lib.JSONDecodeError:
+                            print(f"[n8n agentic-webhook] Not valid JSON, returning text. Text: {raw_text[:200]}")
+                            return {
+                                "success": True,
+                                "data": {"ai_message": raw_text}
+                            }
+
                         if isinstance(json_response, list) and len(json_response) > 0:
                             result = json_response[0]
                         else:
                             result = json_response
+                            
+                        # n8n "json" sarmasını aç: {"json": {...}}  →  {...}
+                        if isinstance(result, dict) and "json" in result and "members" not in result:
+                            result = result["json"]
                         
-                        # n8n yanıtı "text" içinde olabilir
-                        if isinstance(result, dict) and "text" in result:
-                            text_content = result["text"]
-                            import json as json_lib
-                            import re
-                            cleaned = text_content.strip()
-                            if cleaned.startswith("```"):
-                                cleaned = re.sub(r'^```(?:json)?\s*\n?', '', cleaned)
-                                cleaned = re.sub(r'\n?```\s*$', '', cleaned)
-                            try:
-                                result = json_lib.loads(cleaned)
-                            except:
-                                pass
+                        # n8n yanıtı "text" veya "output" içinde olabilir
+                        if isinstance(result, dict):
+                            for key in ("text", "output"):
+                                if key in result and isinstance(result[key], str):
+                                    text_content = result[key]
+                                    cleaned = text_content.strip()
+                                    if cleaned.startswith("```"):
+                                        cleaned = re.sub(r'^```(?:json)?\s*\n?', '', cleaned)
+                                        cleaned = re.sub(r'\n?```\s*$', '', cleaned)
+                                    try:
+                                        result = json_lib.loads(cleaned)
+                                        print(f"[n8n agentic-webhook] parsed string from '{key}'")
+                                    except:
+                                        pass
+                                    break
+                        
+                        print(f"[n8n agentic-webhook] FINAL result keys: {list(result.keys()) if isinstance(result, dict) else type(result).__name__}")
                         
                         return {
                             "success": True,
                             "data": result
                         }
-                    except:
+                    except Exception as e:
+                        print(f"[n8n agentic-webhook] PARSE ERROR: {e}")
                         return {
                             "success": False,
-                            "error": "n8n yanıtı parse edilemedi"
+                            "error": f"n8n yanıtı parse edilemedi: {str(e)}"
                         }
                 else:
                     return {

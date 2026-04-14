@@ -206,7 +206,7 @@ export default function MemberProfileScreen() {
 
 const st = StyleSheet.create({
     root: { flex: 1, backgroundColor: Colors.background },
-    content: { padding: Spacing.base, gap: Spacing.lg, paddingBottom: Spacing['4xl'] },
+    content: { padding: Spacing.base, gap: Spacing.lg, paddingBottom: 120 },
     avatarCard: { alignItems: 'center', gap: Spacing.sm },
     avatarCircle: { width: 80, height: 80, borderRadius: 40, backgroundColor: Colors.primary, alignItems: 'center', justifyContent: 'center' },
     avatarInitial: { fontSize: 32, fontWeight: '800', color: Colors.primaryForeground },

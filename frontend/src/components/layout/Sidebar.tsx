@@ -12,7 +12,8 @@ import {
   FileText,
   Sparkles,
   Calculator,
-  Zap
+  Zap,
+  HelpCircle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
@@ -29,9 +30,7 @@ const memberMenuItems = [
 
 // Diyetisyen menüsü
 const dietitianMenuItems = [
-  { icon: LayoutDashboard, label: "Dashboard", path: "/dietitian-dashboard" },
-  { icon: Users, label: "Danışanlarım", path: "/dietitian-dashboard" },
-  { icon: FileText, label: "Programlar", path: "/dietitian-dashboard" },
+  { icon: LayoutDashboard, label: "Genel Bakış", path: "/dietitian-dashboard" },
   { icon: MessageSquare, label: "Mesajlar", path: "/messages" },
   { icon: Zap, label: "Agentic AI", path: "/dietitian/agentic-ai" },
   { icon: Sparkles, label: "Günlük Rapor", path: "/dietitian/daily-report" },
@@ -90,6 +89,17 @@ export const Sidebar = () => {
         })}
       </nav>
 
+
+      {/* Guide & Help Section */}
+      <div className="px-4 pb-4">
+        <Link
+          to={user?.role === "dietitian" ? "/guide/dietitian" : "/guide/member"}
+          className="flex items-center gap-3 px-4 py-3 rounded-xl text-primary bg-primary/5 hover:bg-primary/15 transition-all duration-300 border border-primary/20"
+        >
+          <HelpCircle className="w-5 h-5" />
+          <span className="font-medium text-sm">Nasıl Çalışır?</span>
+        </Link>
+      </div>
 
       {/* User Section */}
       <div className="p-4 border-t border-sidebar-border">

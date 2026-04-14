@@ -19,7 +19,9 @@ async def start_chat(
 ) -> Any:
     """Sohbet başlatır — üye için otomatik diyetisyen, diyetisyen için belirtilen üye."""
     
-    if current_user.role == "member":
+    user_role = getattr(current_user.role, 'value', current_user.role)
+    
+    if user_role == "member":
         # Üye: otomatik olarak tek diyetisyenle eşleştir
         dietitian = await get_the_dietitian()
         member_id = str(current_user.id)
@@ -60,7 +62,7 @@ async def start_chat(
             other_participant=other_details
         )
     
-    elif current_user.role == "dietitian":
+    elif user_role == "dietitian":
         # Diyetisyen: belirtilen üyeyle sohbet başlat
         if not body or not body.member_id:
             raise HTTPException(status_code=400, detail="member_id gerekli")
@@ -115,9 +117,11 @@ async def get_chats(
     Diyetisyen: TÜM üyeleri gösterir (sohbeti olmayanlar dahil).
     Üye: Sadece diyetisyen ile olan sohbeti gösterir.
     """
-    if current_user.role == "dietitian":
+    user_role = getattr(current_user.role, 'value', current_user.role)
+    
+    if user_role == "dietitian":
         # Diyetisyen: tüm üyeleri listele (sohbet olsun olmasın)
-        all_members = await Member.find(Member.is_active == True).to_list()
+        all_members = await Member.find_all().to_list()
         response_chats = []
         
         for member in all_members:
