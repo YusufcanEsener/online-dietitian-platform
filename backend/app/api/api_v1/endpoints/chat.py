@@ -115,24 +115,45 @@ async def get_chats(
 ) -> Any:
     """Kullanıcının sohbet listesini döndürür.
     Diyetisyen: TÜM üyeleri gösterir (sohbeti olmayanlar dahil).
-    Üye: Sadece diyetisyen ile olan sohbeti gösterir.
+    Üye: Diyetisyen ile olan sohbeti gösterir (yoksa otomatik oluşturur).
     """
     user_role = getattr(current_user.role, 'value', current_user.role)
     
     if user_role == "dietitian":
-        # Diyetisyen: tüm üyeleri listele (sohbet olsun olmasın)
+        # Diyetisyen: tüm üyeleri ve tüm sohbetleri tek seferde çek (N+1 query yok)
         all_members = await Member.find_all().to_list()
-        response_chats = []
+        all_chats = await Chat.find(
+            Chat.dietitian_id == str(current_user.id)
+        ).to_list()
         
+        # Chat'leri member_id'ye göre indexle
+        chat_by_member = {}
+        for c in all_chats:
+            if c.member_id:
+                chat_by_member[c.member_id] = c
+        
+        # Mevcut sohbetlerin son mesajlarını toplu çek
+        chat_ids = [str(c.id) for c in all_chats]
+        last_messages = {}
+        if chat_ids:
+            # Tüm chat'lerin son mesajlarını tek pipeline ile çekmek yerine
+            # basit bir sorgu yapalım (her chat için değil, tüm mesajları çek sonra grupla)
+            all_recent_messages = await Message.find(
+                {"chat_id": {"$in": chat_ids}}
+            ).sort("-timestamp").to_list()
+            
+            for msg in all_recent_messages:
+                if msg.chat_id not in last_messages:
+                    last_messages[msg.chat_id] = msg
+        
+        response_chats = []
         for member in all_members:
             member_id = str(member.id)
-            
-            # Bu üyeyle mevcut sohbet var mı?
-            existing_chat = await Chat.find_one(Chat.member_id == member_id)
-            
             other_details = ParticipantDetails(
                 name=member.full_name or "İsimsiz Üye"
             )
+            
+            existing_chat = chat_by_member.get(member_id)
             
             if existing_chat:
                 chat_resp = ChatResponse(
@@ -142,18 +163,13 @@ async def get_chats(
                     other_participant=other_details
                 )
                 
-                # Son mesajı ekle
-                last_message = await Message.find(
-                    Message.chat_id == str(existing_chat.id)
-                ).sort("-timestamp").limit(1).to_list()
-                
-                if last_message:
-                    m = last_message[0]
+                last_msg = last_messages.get(str(existing_chat.id))
+                if last_msg:
                     chat_resp.last_message = MessageResponse(
-                        id=str(m.id),
-                        sender_id=m.sender_id,
-                        content=m.content,
-                        timestamp=m.timestamp
+                        id=str(last_msg.id),
+                        sender_id=last_msg.sender_id,
+                        content=last_msg.content,
+                        timestamp=last_msg.timestamp
                     )
             else:
                 # Sohbeti olmayan üye — geçici ID olarak member_id kullan
@@ -169,51 +185,69 @@ async def get_chats(
         return response_chats
     
     else:
-        # Üye: sadece diyetisyen ile olan sohbeti getir
+        # Üye: diyetisyen ile olan sohbeti getir
         all_chats = await Chat.find(
             Chat.member_id == str(current_user.id)
         ).sort("-created_at").to_list()
         
         response_chats = []
-        for c in all_chats:
-            # Diyetisyeni bul
-            other_user = await Dietitian.get(c.dietitian_id) if c.dietitian_id else None
-            if not other_user:
-                # Fallback: participants'dan bul
-                other_id = next((pid for pid in c.participants if pid != str(current_user.id)), None)
-                if other_id:
-                    other_user = await Dietitian.get(other_id)
-            
-            other_details = None
-            if other_user:
+        
+        if all_chats:
+            for c in all_chats:
+                # Diyetisyeni bul
+                other_user = await Dietitian.get(c.dietitian_id) if c.dietitian_id else None
+                if not other_user:
+                    other_id = next((pid for pid in c.participants if pid != str(current_user.id)), None)
+                    if other_id:
+                        other_user = await Dietitian.get(other_id)
+                
+                other_details = None
+                if other_user:
+                    other_details = ParticipantDetails(
+                        name=other_user.full_name or "Diyetisyen",
+                        title=getattr(other_user, "title", None)
+                    )
+                else:
+                    other_details = ParticipantDetails(name="Diyetisyen")
+                
+                chat_resp = ChatResponse(
+                    id=str(c.id),
+                    participants=c.participants,
+                    status=getattr(c, "status", "active"),
+                    other_participant=other_details
+                )
+                
+                # Son mesajı ekle
+                last_message = await Message.find(
+                    Message.chat_id == str(c.id)
+                ).sort("-timestamp").limit(1).to_list()
+                
+                if last_message:
+                    m = last_message[0]
+                    chat_resp.last_message = MessageResponse(
+                        id=str(m.id),
+                        sender_id=m.sender_id,
+                        content=m.content,
+                        timestamp=m.timestamp
+                    )
+                response_chats.append(chat_resp)
+        else:
+            # Üyenin hiç sohbeti yok — diyetisyeni göster ki mesaj atabilsin
+            try:
+                dietitian = await get_the_dietitian()
                 other_details = ParticipantDetails(
-                    name=other_user.full_name or "Diyetisyen",
-                    title=getattr(other_user, "title", None)
+                    name=dietitian.full_name or "Diyetisyen",
+                    title=getattr(dietitian, "title", None)
                 )
-            else:
-                other_details = ParticipantDetails(name="Diyetisyen")
-            
-            chat_resp = ChatResponse(
-                id=str(c.id),
-                participants=c.participants,
-                status=getattr(c, "status", "active"),
-                other_participant=other_details
-            )
-            
-            # Son mesajı ekle
-            last_message = await Message.find(
-                Message.chat_id == str(c.id)
-            ).sort("-timestamp").limit(1).to_list()
-            
-            if last_message:
-                m = last_message[0]
-                chat_resp.last_message = MessageResponse(
-                    id=str(m.id),
-                    sender_id=m.sender_id,
-                    content=m.content,
-                    timestamp=m.timestamp
+                chat_resp = ChatResponse(
+                    id=f"new_{str(current_user.id)}",
+                    participants=[str(current_user.id), str(dietitian.id)],
+                    status="active",
+                    other_participant=other_details
                 )
-            response_chats.append(chat_resp)
+                response_chats.append(chat_resp)
+            except Exception:
+                pass  # Diyetisyen bulunamazsa boş liste döner
         
         return response_chats
 

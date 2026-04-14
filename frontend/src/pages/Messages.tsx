@@ -33,17 +33,6 @@ const Messages = () => {
         const chats = await chatService.getChats();
         setConversations(chats);
 
-        // Eğer üye ise ve hiç sohbet yoksa, otomatik başlat
-        if (!isDietitian && chats.length === 0) {
-          try {
-            const newChat = await chatService.startChat();
-            setConversations([newChat]);
-            setSelectedConversation(newChat);
-          } catch (e) {
-            console.error("Auto-start chat failed:", e);
-          }
-        }
-
         // Check for redirect state (only on first load)
         const stateChatId = location.state?.selectedChatId;
         if (stateChatId) {
@@ -107,18 +96,30 @@ const Messages = () => {
   }, [selectedConversation?.id]);
 
   const handleSelectConversation = async (conversation: Chat) => {
-    if (isDietitian && conversation.id.startsWith("new_")) {
-      // Diyetisyen yeni sohbet başlatıyor
-      const memberId = conversation.id.replace("new_", "");
-      try {
-        const newChat = await chatService.startChatWithMember(memberId);
-        // Sohbet listesini güncelle
-        setConversations(prev =>
-          prev.map(c => c.id === conversation.id ? newChat : c)
-        );
-        setSelectedConversation(newChat);
-      } catch (error: any) {
-        toast({ title: "Hata", description: error.response?.data?.detail || "Sohbet başlatılamadı", variant: "destructive" });
+    if (conversation.id.startsWith("new_")) {
+      if (isDietitian) {
+        // Diyetisyen yeni sohbet başlatıyor
+        const memberId = conversation.id.replace("new_", "");
+        try {
+          const newChat = await chatService.startChatWithMember(memberId);
+          setConversations(prev =>
+            prev.map(c => c.id === conversation.id ? newChat : c)
+          );
+          setSelectedConversation(newChat);
+        } catch (error: any) {
+          toast({ title: "Hata", description: error.response?.data?.detail || "Sohbet başlatılamadı", variant: "destructive" });
+        }
+      } else {
+        // Üye yeni sohbet başlatıyor (diyetisyen ile)
+        try {
+          const newChat = await chatService.startChat();
+          setConversations(prev =>
+            prev.map(c => c.id === conversation.id ? newChat : c)
+          );
+          setSelectedConversation(newChat);
+        } catch (error: any) {
+          toast({ title: "Hata", description: error.response?.data?.detail || "Sohbet başlatılamadı", variant: "destructive" });
+        }
       }
     } else {
       setSelectedConversation(conversation);
@@ -130,9 +131,14 @@ const Messages = () => {
 
     // Eğer yeni sohbet ise (new_ prefix), önce sohbeti başlat
     if (selectedConversation.id.startsWith("new_")) {
-      const memberId = selectedConversation.id.replace("new_", "");
       try {
-        const newChat = await chatService.startChatWithMember(memberId);
+        let newChat: Chat;
+        if (isDietitian) {
+          const memberId = selectedConversation.id.replace("new_", "");
+          newChat = await chatService.startChatWithMember(memberId);
+        } else {
+          newChat = await chatService.startChat();
+        }
         setConversations(prev =>
           prev.map(c => c.id === selectedConversation.id ? newChat : c)
         );

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
     Users,
@@ -28,12 +28,14 @@ import NotificationBell from "@/components/NotificationBell";
 
 const DietitianDashboard = () => {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
     const { user, isAuthenticated, isLoading: authLoading, logout } = useAuth();
     const { toast } = useToast();
     const [stats, setStats] = useState<DietitianStats | null>(null);
     const [members, setMembers] = useState<DietitianMember[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState<'overview' | 'members' | 'plans'>('overview');
+    const initialTab = searchParams.get("tab") === "members" ? "members" : "overview";
+    const [activeTab, setActiveTab] = useState<'overview' | 'members' | 'plans'>(initialTab);
 
     useEffect(() => {
         if (!authLoading && !isAuthenticated) {

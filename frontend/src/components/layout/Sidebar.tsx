@@ -13,6 +13,7 @@ import {
   Sparkles,
   Calculator,
   Zap,
+  Flame,
   HelpCircle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -28,14 +29,14 @@ const memberMenuItems = [
   { icon: Settings, label: "Ayarlar", path: "/settings" },
 ];
 
-// Diyetisyen menüsü
+// Diyetisyen menüsü — DietitianDashboard sidebar ile birebir eşleşmeli
 const dietitianMenuItems = [
-  { icon: LayoutDashboard, label: "Genel Bakış", path: "/dietitian-dashboard" },
+  { icon: TrendingUp, label: "Genel Bakış", path: "/dietitian-dashboard" },
+  { icon: Users, label: "Danışanlarım", path: "/dietitian-dashboard?tab=members" },
   { icon: MessageSquare, label: "Mesajlar", path: "/messages" },
   { icon: Zap, label: "Agentic AI", path: "/dietitian/agentic-ai" },
-  { icon: Sparkles, label: "Günlük Rapor", path: "/dietitian/daily-report" },
-  { icon: User, label: "Profil", path: "/profile" },
-  { icon: Settings, label: "Ayarlar", path: "/settings" },
+  { icon: Flame, label: "Detaylı Kalori", path: "/dietitian/detailed-calorie-calculator" },
+  { icon: User, label: "Profilim", path: "/profile" },
 ];
 
 export const Sidebar = () => {
@@ -65,9 +66,10 @@ export const Sidebar = () => {
 
       {/* Navigation */}
       <nav className="flex-1 px-4 py-6 space-y-2">
-        {menuItems.map((item, index) => {
-          const isActive = location.pathname === item.path ||
-            (item.path === "/dietitian-dashboard" && location.pathname.startsWith("/dietitian"));
+      {menuItems.map((item, index) => {
+          const itemPath = item.path.split("?")[0];
+          const isActive = location.pathname === itemPath ||
+            (item.path.includes("?tab=members") && location.pathname === "/dietitian-dashboard" && location.search.includes("tab=members"));
           return (
             <Link
               key={`${item.path}-${index}`}
