@@ -36,8 +36,9 @@ jobs:
               exit 1
             fi
 
-            # Servisleri yeniden build et ve başlat
-            docker compose --env-file .env.production up -d --build --force-recreate
+            # Servisleri yeniden build et ve başlat (--no-cache: eski build cache kullanma)
+            docker compose --env-file .env.production build --no-cache
+            docker compose --env-file .env.production up -d --force-recreate
 
             # Kullanılmayan image'ları temizle
             docker image prune -f
