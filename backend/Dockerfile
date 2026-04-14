@@ -23,5 +23,5 @@ USER appuser
 # Port
 EXPOSE 8000
 
-# Uvicorn — production: 2 worker, access log kapalı
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2", "--no-access-log"]
+# Uvicorn — production: 2 worker, access log kapalı, proxy headers devrede
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2", "--no-access-log", "--proxy-headers", "--forwarded-allow-ips", "*"]

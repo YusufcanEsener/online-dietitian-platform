@@ -2,7 +2,7 @@ import api from '@/lib/api';
 import type { Chat, Message } from '@/types';
 
 export const getChats = async (): Promise<Chat[]> => {
-    const response = await api.get<Chat[]>('/chats');
+    const response = await api.get<Chat[]>('/chats/');
     return response.data;
 };
 
