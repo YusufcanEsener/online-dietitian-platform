@@ -120,8 +120,10 @@ async def get_chats(
     user_role = getattr(current_user.role, 'value', current_user.role)
     
     if user_role == "dietitian":
-        # Diyetisyen: tüm üyeleri ve tüm sohbetleri tek seferde çek (N+1 query yok)
-        all_members = await Member.find_all().to_list()
+        from beanie.operators import In
+        
+        # Diyetisyen: tüm aktif üyeleri ve tüm sohbetleri tek seferde çek
+        all_members = await Member.find(Member.is_active == True).to_list()
         all_chats = await Chat.find(
             Chat.dietitian_id == str(current_user.id)
         ).to_list()
@@ -136,10 +138,9 @@ async def get_chats(
         chat_ids = [str(c.id) for c in all_chats]
         last_messages = {}
         if chat_ids:
-            # Tüm chat'lerin son mesajlarını tek pipeline ile çekmek yerine
-            # basit bir sorgu yapalım (her chat için değil, tüm mesajları çek sonra grupla)
+            # Beanie native In operatörünü kullanalım
             all_recent_messages = await Message.find(
-                {"chat_id": {"$in": chat_ids}}
+                In(Message.chat_id, chat_ids)
             ).sort("-timestamp").to_list()
             
             for msg in all_recent_messages:
