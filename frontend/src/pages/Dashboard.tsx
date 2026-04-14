@@ -166,7 +166,7 @@ const Dashboard = () => {
             </h1>
             <p className="text-muted-foreground mt-1">
               {myDietitian
-                ? `Diyetisyeniniz: ${myDietitian.title || ''} ${myDietitian.full_name}`
+                ? `Diyetisyeniniz:${myDietitian.full_name}`
                 : "Bugünkü sağlık durumunuza göz atalım"
               }
             </p>

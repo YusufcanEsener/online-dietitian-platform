@@ -179,8 +179,8 @@ const Messages = () => {
       <div className="h-[calc(100vh-6rem)] lg:h-screen flex">
         {/* Conversations List */}
         <div className={cn(
-          "flex flex-col border-r border-border bg-card/50",
-          isDietitian ? "w-80" : "hidden md:flex w-80"
+          "flex flex-col border-r border-border bg-card/50 w-full md:w-80",
+          selectedConversation ? "hidden md:flex" : "flex"
         )}>
           <div className="p-4 border-b border-border">
             <h2 className="text-lg font-semibold text-foreground mb-4">
@@ -241,12 +241,21 @@ const Messages = () => {
         </div>
 
         {/* Chat Area */}
-        <div className="flex-1 flex flex-col">
+        <div className={cn(
+          "flex-1 flex flex-col",
+          !selectedConversation ? "hidden md:flex" : "flex"
+        )}>
           {selectedConversation ? (
             <>
               {/* Chat Header */}
               <div className="flex items-center justify-between p-4 border-b border-border glass">
                 <div className="flex items-center gap-3">
+                  <button 
+                    onClick={() => setSelectedConversation(null)}
+                    className="md:hidden p-2 -ml-2 rounded-lg hover:bg-surface text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                  </button>
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-primary-foreground font-bold">
                     {selectedConversation.other_participant?.name?.charAt(0) || "?"}
                   </div>

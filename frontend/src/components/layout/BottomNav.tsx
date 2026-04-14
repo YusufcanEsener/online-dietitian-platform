@@ -3,19 +3,32 @@ import {
   LayoutDashboard, 
   MessageSquare, 
   TrendingUp, 
-  User 
+  User,
+  Zap,
+  Sparkles
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
 
-const navItems = [
+const memberNavItems = [
   { icon: LayoutDashboard, label: "Ana Sayfa", path: "/dashboard" },
   { icon: MessageSquare, label: "Mesajlar", path: "/messages" },
   { icon: TrendingUp, label: "İlerleme", path: "/progress" },
   { icon: User, label: "Profil", path: "/profile" },
 ];
 
+const dietitianNavItems = [
+  { icon: LayoutDashboard, label: "Ana Sayfa", path: "/dietitian-dashboard" },
+  { icon: MessageSquare, label: "Mesajlar", path: "/messages" },
+  { icon: Zap, label: "AI", path: "/dietitian/agentic-ai" },
+  { icon: User, label: "Profil", path: "/profile" },
+];
+
 export const BottomNav = () => {
   const location = useLocation();
+  const { user } = useAuth();
+  
+  const navItems = user?.role === "dietitian" ? dietitianNavItems : memberNavItems;
 
   return (
     <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 glass border-t border-border/50 safe-area-inset-bottom">
