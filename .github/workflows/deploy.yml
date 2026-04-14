@@ -25,8 +25,9 @@ jobs:
 
             cd ~/online-dietitian-platform
 
-            # Son kodu çek
-            git pull origin main
+            # Kodları zorla eşitle (Sunucudaki yerel değişiklikleri ez)
+            git fetch origin main
+            git reset --hard origin/main
 
             # .env.production dosyası kontrol
             if [ ! -f .env.production ]; then
