@@ -39,6 +39,9 @@ import Contact from "./pages/Contact";
 import MemberGuide from "./pages/MemberGuide";
 import DietitianGuide from "./pages/DietitianGuide";
 
+// Haberler (sadece diyetisyen)
+import DietitianNews from "./pages/DietitianNews";
+
 const queryClient = new QueryClient();
 const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
 
@@ -81,6 +84,8 @@ const App = () => (
                 {/* Rehber Sayfaları */}
                 <Route path="/guide/member" element={<MemberGuide />} />
                 <Route path="/guide/dietitian" element={<DietitianGuide />} />
+                {/* Haberler - sadece diyetisyen */}
+                <Route path="/dietitian/news" element={<DietitianNews />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </BrowserRouter>

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, Link, useSearchParams } from "react-router-dom";
+import { useNavigate, Link, useSearchParams, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
     Users,
@@ -25,6 +25,7 @@ import * as dietitianService from "@/services/dietitianDashboardService";
 import { useToast } from "@/hooks/use-toast";
 import type { DietitianStats, DietitianMember } from "@/services/dietitianDashboardService";
 import NotificationBell from "@/components/NotificationBell";
+import { DashboardLayout } from "@/components/layout/DashboardLayout";
 
 const DietitianDashboard = () => {
     const navigate = useNavigate();
@@ -36,6 +37,13 @@ const DietitianDashboard = () => {
     const [isLoading, setIsLoading] = useState(true);
     const initialTab = searchParams.get("tab") === "members" ? "members" : "overview";
     const [activeTab, setActiveTab] = useState<'overview' | 'members' | 'plans'>(initialTab);
+
+    // Sidebar'dan (URL üzerinden) tab değişimini yakala
+    useEffect(() => {
+        const tab = searchParams.get("tab");
+        if (tab === "members") setActiveTab("members");
+        else setActiveTab("overview");
+    }, [searchParams]);
 
     useEffect(() => {
         if (!authLoading && !isAuthenticated) {
@@ -85,111 +93,8 @@ const DietitianDashboard = () => {
     const initials = user?.full_name?.split(" ").map(n => n[0]).join("").slice(0, 2) || "?";
 
     return (
-        <div className="min-h-screen bg-background flex">
-            {/* Sidebar */}
-            <aside className="hidden lg:flex flex-col w-72 h-screen bg-sidebar border-r border-sidebar-border fixed left-0 top-0 z-40">
-                <Link to="/" className="flex items-center gap-3 px-6 py-6 border-b border-sidebar-border hover:bg-sidebar-accent transition-colors">
-                    <div className="w-10 h-10 rounded-xl bg-neon-gradient flex items-center justify-center neon-glow">
-                        <Leaf className="w-6 h-6 text-primary-foreground" />
-                    </div>
-                    <div>
-                        <span className="text-xl font-bold gradient-text">DietPlatform</span>
-                        <p className="text-xs text-muted-foreground">Diyetisyen Paneli</p>
-                    </div>
-                </Link>
-
-                <nav className="flex-1 px-4 py-6 space-y-2">
-                    <button
-                        onClick={() => setActiveTab('overview')}
-                        className={cn(
-                            "w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300",
-                            activeTab === 'overview'
-                                ? "bg-primary/10 text-primary"
-                                : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground"
-                        )}
-                    >
-                        <TrendingUp className="w-5 h-5" />
-                        <span className="font-medium">Genel Bakış</span>
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('members')}
-                        className={cn(
-                            "w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300",
-                            activeTab === 'members'
-                                ? "bg-primary/10 text-primary"
-                                : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground"
-                        )}
-                    >
-                        <Users className="w-5 h-5" />
-                        <span className="font-medium">Danışanlarım</span>
-                        <span className="ml-auto px-2 py-0.5 rounded-full bg-primary/20 text-primary text-xs font-bold">
-                            {members.length}
-                        </span>
-                    </button>
-                    <Link
-                        to="/messages"
-                        className="flex items-center gap-3 px-4 py-3 rounded-xl text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground transition-all duration-300"
-                    >
-                        <MessageSquare className="w-5 h-5" />
-                        <span className="font-medium">Mesajlar</span>
-                    </Link>
-                    <Link
-                        to="/dietitian/agentic-ai"
-                        className="flex items-center gap-3 px-4 py-3 rounded-xl text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground transition-all duration-300"
-                    >
-                        <Zap className="w-5 h-5 text-purple-500" />
-                        <span className="font-medium">Agentic AI</span>
-                    </Link>
-                    <Link
-                        to="/dietitian/detailed-calorie-calculator"
-                        className="flex items-center gap-3 px-4 py-3 rounded-xl text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground transition-all duration-300"
-                    >
-                        <Flame className="w-5 h-5 text-orange-500" />
-                        <span className="font-medium">Detaylı Kalori</span>
-                    </Link>
-                    <Link
-                        to="/profile"
-                        className="flex items-center gap-3 px-4 py-3 rounded-xl text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground transition-all duration-300"
-                    >
-                        <User className="w-5 h-5" />
-                        <span className="font-medium">Profilim</span>
-                    </Link>
-                </nav>
-
-                {/* Guide & Help Section */}
-                <div className="px-4 pb-4">
-                    <Link
-                        to="/guide/dietitian"
-                        className="flex items-center gap-3 px-4 py-3 rounded-xl text-primary bg-primary/5 hover:bg-primary/15 transition-all duration-300 border border-primary/20"
-                    >
-                        <HelpCircle className="w-5 h-5" />
-                        <span className="font-medium text-sm">Nasıl Çalışır?</span>
-                    </Link>
-                </div>
-
-                <div className="p-4 border-t border-sidebar-border">
-                    <div className="flex items-center gap-3 p-3 rounded-xl bg-sidebar-accent">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center">
-                            <span className="text-sm font-bold text-primary-foreground">{initials}</span>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-sidebar-foreground truncate">{user?.full_name || "Diyetisyen"}</p>
-                            <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
-                        </div>
-                        <button
-                            onClick={handleLogout}
-                            className="p-2 rounded-lg hover:bg-sidebar-border transition-colors"
-                            title="Çıkış Yap"
-                        >
-                            <LogOut className="w-4 h-4 text-muted-foreground" />
-                        </button>
-                    </div>
-                </div>
-            </aside>
-
-            {/* Main Content */}
-            <main className="flex-1 lg:ml-72">
-                <div className="p-4 lg:p-8">
+        <DashboardLayout>
+            <div className="p-4 lg:p-8">
                     {/* Header */}
                     <header className="flex items-center justify-between mb-8">
                         <div>
@@ -372,8 +277,7 @@ const DietitianDashboard = () => {
                         </div>
                     )}
                 </div>
-            </main>
-        </div>
+        </DashboardLayout>
     );
 };
 

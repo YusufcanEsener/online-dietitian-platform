@@ -8,6 +8,7 @@ from app.models.daily_log import DailyLog
 from app.models.nutrition_plan import NutritionPlan
 from app.models.agentic_report import AgenticReport
 from app.models.notification import Notification
+from app.models.pubmed_news import PubMedNews
 import logging
 
 logger = logging.getLogger(__name__)
@@ -42,7 +43,8 @@ async def init_db():
                 DailyLog,
                 NutritionPlan,
                 AgenticReport,
-                Notification
+                Notification,
+                PubMedNews
             ]
         )
         return client

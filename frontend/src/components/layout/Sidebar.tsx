@@ -14,7 +14,8 @@ import {
   Calculator,
   Zap,
   Flame,
-  HelpCircle
+  HelpCircle,
+  Newspaper
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
@@ -29,14 +30,16 @@ const memberMenuItems = [
   { icon: Settings, label: "Ayarlar", path: "/settings" },
 ];
 
-// Diyetisyen menüsü — DietitianDashboard sidebar ile birebir eşleşmeli
 const dietitianMenuItems = [
   { icon: TrendingUp, label: "Genel Bakış", path: "/dietitian-dashboard" },
   { icon: Users, label: "Danışanlarım", path: "/dietitian-dashboard?tab=members" },
   { icon: MessageSquare, label: "Mesajlar", path: "/messages" },
+  { icon: Newspaper, label: "Haberler", path: "/dietitian/news" },
   { icon: Zap, label: "Agentic AI", path: "/dietitian/agentic-ai" },
+  { icon: Sparkles, label: "Günlük Rapor", path: "/dietitian/daily-report" },
   { icon: Flame, label: "Detaylı Kalori", path: "/dietitian/detailed-calorie-calculator" },
   { icon: User, label: "Profilim", path: "/profile" },
+  { icon: Settings, label: "Ayarlar", path: "/settings" },
 ];
 
 export const Sidebar = () => {
@@ -58,10 +61,15 @@ export const Sidebar = () => {
     <aside className="hidden lg:flex flex-col w-72 h-screen bg-sidebar border-r border-sidebar-border fixed left-0 top-0 z-40">
       {/* Logo - links to home */}
       <Link to="/" className="flex items-center gap-3 px-6 py-6 border-b border-sidebar-border hover:bg-sidebar-accent transition-colors">
-        <div className="w-10 h-10 rounded-xl bg-neon-gradient flex items-center justify-center neon-glow">
+        <div className="w-10 h-10 rounded-xl bg-neon-gradient flex items-center justify-center neon-glow shrink-0">
           <Leaf className="w-6 h-6 text-primary-foreground" />
         </div>
-        <span className="text-xl font-bold gradient-text">DietPlatform</span>
+        <div className="flex flex-col">
+          <span className="text-xl font-bold gradient-text leading-tight">DietPlatform</span>
+          <span className="text-xs text-muted-foreground font-medium">
+            {user?.role === "dietitian" ? "Diyetisyen Paneli" : "Üye Paneli"}
+          </span>
+        </div>
       </Link>
 
       {/* Navigation */}

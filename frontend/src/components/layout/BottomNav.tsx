@@ -5,7 +5,8 @@ import {
   TrendingUp, 
   User,
   Zap,
-  Sparkles
+  Sparkles,
+  Newspaper
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
@@ -20,6 +21,7 @@ const memberNavItems = [
 const dietitianNavItems = [
   { icon: LayoutDashboard, label: "Ana Sayfa", path: "/dietitian-dashboard" },
   { icon: MessageSquare, label: "Mesajlar", path: "/messages" },
+  { icon: Newspaper, label: "Haberler", path: "/dietitian/news" },
   { icon: Zap, label: "AI", path: "/dietitian/agentic-ai" },
   { icon: User, label: "Profil", path: "/profile" },
 ];
