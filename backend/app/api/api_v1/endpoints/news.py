@@ -119,3 +119,62 @@ async def ingest_news(
     )
     await news.create()
     return {"status": "created", "id": str(news.id)}
+
+# ─── Interactions Endpoints ─────────────────────────────────────────────────
+
+from app.models.user_news_interaction import UserNewsInteraction
+
+class InteractionUpdate(BaseModel):
+    is_read: Optional[bool] = None
+    is_favorite: Optional[bool] = None
+
+class InteractionResponse(BaseModel):
+    news_id: str
+    is_read: bool
+    is_favorite: bool
+
+@router.get("/interactions", response_model=List[InteractionResponse])
+async def get_interactions(
+    current_user: User = Depends(get_current_user),
+) -> Any:
+    interactions = await UserNewsInteraction.find(UserNewsInteraction.user_id == str(current_user.id)).to_list()
+    return [
+        InteractionResponse(
+            news_id=item.news_id,
+            is_read=item.is_read,
+            is_favorite=item.is_favorite
+        )
+        for item in interactions
+    ]
+
+@router.post("/{news_id}/interact", response_model=InteractionResponse)
+async def update_interaction(
+    news_id: str,
+    payload: InteractionUpdate,
+    current_user: User = Depends(get_current_user),
+) -> Any:
+    interaction = await UserNewsInteraction.find_one(
+        UserNewsInteraction.user_id == str(current_user.id),
+        UserNewsInteraction.news_id == news_id
+    )
+    
+    if not interaction:
+        interaction = UserNewsInteraction(
+            user_id=str(current_user.id),
+            news_id=news_id,
+            is_read=payload.is_read if payload.is_read is not None else False,
+            is_favorite=payload.is_favorite if payload.is_favorite is not None else False
+        )
+    else:
+        if payload.is_read is not None:
+            interaction.is_read = payload.is_read
+        if payload.is_favorite is not None:
+            interaction.is_favorite = payload.is_favorite
+        interaction.updated_at = datetime.utcnow()
+        
+    await interaction.save()
+    return InteractionResponse(
+        news_id=interaction.news_id,
+        is_read=interaction.is_read,
+        is_favorite=interaction.is_favorite
+    )
