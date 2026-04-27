@@ -32,6 +32,7 @@ services:
     command: [ "mongod", "--config", "/etc/mongod.conf" ]
     networks:
       - backend-net
+      - frontend-net
     security_opt:
       - no-new-privileges:true
     healthcheck:
