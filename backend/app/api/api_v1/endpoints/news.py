@@ -15,6 +15,7 @@ router = APIRouter()
 class PubMedNewsResponse(BaseModel):
     id: str
     title: str
+    title_tr: Optional[str] = None
     link: str
     description: Optional[str] = None
     published_at: Optional[datetime] = None
@@ -30,6 +31,7 @@ class PubMedNewsResponse(BaseModel):
 
 class PubMedNewsCreate(BaseModel):
     title: str
+    title_tr: str
     link: str
     description: Optional[str] = None
     published_at: Optional[datetime] = None
@@ -67,6 +69,7 @@ async def get_news(
         PubMedNewsResponse(
             id=str(item.id),
             title=item.title,
+            title_tr=item.title_tr,
             link=item.link,
             description=item.description,
             published_at=item.published_at,
@@ -103,6 +106,7 @@ async def ingest_news(
     if existing:
         existing.summary_tr = payload.summary_tr
         existing.title = payload.title
+        existing.title_tr = payload.title_tr
         existing.description = payload.description
         if payload.published_at:
             existing.published_at = payload.published_at
@@ -111,6 +115,7 @@ async def ingest_news(
 
     news = PubMedNews(
         title=payload.title,
+        title_tr=payload.title_tr,
         link=payload.link,
         description=payload.description,
         published_at=payload.published_at,

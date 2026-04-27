@@ -5,6 +5,7 @@ const API_URL = import.meta.env.VITE_API_URL || "";
 export interface PubMedNewsItem {
   id: string;
   title: string;
+  title_tr?: string;
   link: string;
   description?: string;
   published_at?: string;

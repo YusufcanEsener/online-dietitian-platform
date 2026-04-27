@@ -79,7 +79,24 @@ function NewsCard({ item, index, interaction, onInteract }: NewsCardProps) {
   const [expanded, setExpanded] = useState(false);
   const isRead = interaction?.is_read || false;
   const isFavorite = interaction?.is_favorite || false;
-  const readTime = estimateReadingTime(item.summary_tr + (item.description || ""));
+  
+  let displayTitleTr = item.title_tr;
+  let displayTitleEn = item.title;
+  let displaySummary = item.summary_tr;
+
+  if (displaySummary && typeof displaySummary === 'string' && displaySummary.trim().startsWith('{')) {
+    try {
+      const parsed = JSON.parse(displaySummary);
+      if (parsed.title_tr) displayTitleTr = parsed.title_tr;
+      if (parsed.summary_tr) displaySummary = parsed.summary_tr;
+    } catch (e) {
+      // Ignore parse errors
+    }
+  }
+
+  const displayTitle = displayTitleTr ? `${displayTitleEn} (${displayTitleTr})` : displayTitleEn;
+
+  const readTime = estimateReadingTime(displaySummary + (item.description || ""));
 
   const handleExpand = () => {
     setExpanded(!expanded);
@@ -97,12 +114,12 @@ function NewsCard({ item, index, interaction, onInteract }: NewsCardProps) {
     e.stopPropagation();
     if (navigator.share) {
       navigator.share({
-        title: item.title,
-        text: item.summary_tr,
+        title: displayTitle,
+        text: displaySummary,
         url: item.link
       }).catch(console.error);
     } else {
-      navigator.clipboard.writeText(`${item.title}\n\n${item.summary_tr}\n\nLink: ${item.link}`);
+      navigator.clipboard.writeText(`${displayTitle}\n\n${displaySummary}\n\nLink: ${item.link}`);
       alert("Bağlantı kopyalandı!");
     }
   };
@@ -180,7 +197,7 @@ function NewsCard({ item, index, interaction, onInteract }: NewsCardProps) {
         <h3 className={cn("text-sm font-semibold leading-snug mb-4 line-clamp-3 transition-colors",
           isRead ? "text-foreground/80" : "text-foreground group-hover:text-primary"
         )}>
-          {item.title}
+          {displayTitle}
         </h3>
 
         {/* AI Summary */}
@@ -195,8 +212,8 @@ function NewsCard({ item, index, interaction, onInteract }: NewsCardProps) {
               AI Özeti
             </span>
           </div>
-          <p className="text-sm text-muted-foreground leading-relaxed">
-            {item.summary_tr}
+          <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
+            {displaySummary}
           </p>
         </div>
 

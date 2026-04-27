@@ -8,6 +8,7 @@ class PubMedNews(Document):
     """PubMed'den çekilen ve AI ile özetlenen makale haberleri."""
 
     title: str
+    title_tr: Optional[str] = None
     link: str = Field(unique=True)
     description: Optional[str] = None       # RSS'den gelen ham abstract
     published_at: Optional[datetime] = None  # Makalenin yayın tarihi
