@@ -13,9 +13,11 @@ services:
     image: mongo:7
     container_name: dietitian-mongo
     restart: unless-stopped
-    # GÜVENLIK: Port dışarıya AÇILMAZ. Sadece backend-net.
+    # GÜVENLIK: Port dışarıya AÇILMAZ. Sadece sunucunun kendi içine (127.0.0.1) açılır, böylece SSH Tüneli ile bağlanılabilir.
     expose:
       - "27017"
+    ports:
+      - "127.0.0.1:27017:27017"
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
