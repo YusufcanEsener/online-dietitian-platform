@@ -24,7 +24,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import * as dietitianService from "@/services/dietitianDashboardService";
 import { useToast } from "@/hooks/use-toast";
 import type { DietitianStats, DietitianMember } from "@/services/dietitianDashboardService";
-import NotificationBell from "@/components/NotificationBell";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 
 const DietitianDashboard = () => {
@@ -115,7 +114,6 @@ const DietitianDashboard = () => {
                                 </Button>
                             </div>
                         </div>
-                        <NotificationBell />
                     </header>
 
                     {activeTab === 'overview' && (

@@ -64,6 +64,10 @@ class Member(User):
     calorie_goal: Optional[str] = None  # 'lose', 'maintain', 'gain'
     calorie_calculated_at: Optional[datetime] = None
     
+    # Agentic AI fields
+    last_login_at: Optional[datetime] = None
+    agent_preferences: Optional[dict] = None  # {"notification_hour": 14, "whatsapp_enabled": true}
+    
     class Settings:
         name = "members"
 

@@ -10,10 +10,17 @@ import {
     Users,
     Loader2,
     ChevronRight,
-    History
+    History,
+    Eye,
+    X,
+    Bot,
+    Filter,
+    ArrowLeft
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import * as aiService from "@/services/aiService";
+import * as agentService from "@/services/agentService";
+import type { AgentLogItem } from "@/services/agentService";
 import { useToast } from "@/hooks/use-toast";
 
 interface AgenticMember {
@@ -49,6 +56,15 @@ const AgenticDashboard = () => {
     const [report, setReport] = useState<AgenticReport | null>(null);
     const [pastReports, setPastReports] = useState<AgenticReport[]>([]);
     const [showHistory, setShowHistory] = useState(false);
+
+    // AI İzleme tab state'leri
+    const [activeTab, setActiveTab] = useState<'report' | 'monitor'>('report');
+    const [agentLogs, setAgentLogs] = useState<AgentLogItem[]>([]);
+    const [logsTotal, setLogsTotal] = useState(0);
+    const [logsPage, setLogsPage] = useState(1);
+    const [logsLoading, setLogsLoading] = useState(false);
+    const [logFilter, setLogFilter] = useState('all');
+    const [selectedLog, setSelectedLog] = useState<AgentLogItem | null>(null);
 
     useEffect(() => {
         if (!authLoading && !isAuthenticated) {
@@ -87,6 +103,60 @@ const AgenticDashboard = () => {
         }
     };
 
+    // AI İzleme: ajan loglarını yükle
+    const loadAgentLogs = async (page = 1, filter = logFilter) => {
+        setLogsLoading(true);
+        try {
+            const result = await agentService.getAgentLogs(page, 20, filter);
+            if (result.success) {
+                setAgentLogs(result.logs);
+                setLogsTotal(result.total);
+                setLogsPage(page);
+            }
+        } catch (error) {
+            console.error("Error loading agent logs:", error);
+        } finally {
+            setLogsLoading(false);
+        }
+    };
+
+    // Tab değiştiğinde logları yükle
+    const handleTabChange = (tab: 'report' | 'monitor') => {
+        setActiveTab(tab);
+        if (tab === 'monitor' && agentLogs.length === 0) {
+            loadAgentLogs();
+        }
+    };
+
+    // Action type Türkçe etiketleri
+    const actionTypeLabels: Record<string, string> = {
+        notification_sent: "Bildirim Gönderildi",
+        plan_expiry_alert: "Plan Süresi Uyarısı",
+        inactivity_warning: "İnaktiflik Uyarısı",
+        adherence_check: "Uyum Kontrolü",
+        escalation_to_dietitian: "Diyetisyene Eskalasyon",
+        plan_suggestion: "Plan Önerisi",
+        whatsapp_sent: "WhatsApp Gönderildi",
+        weekly_report: "Haftalık Rapor",
+    };
+
+    // Action type renk eşleştirme
+    const getActionColor = (type: string) => {
+        if (type.includes('escalation') || type.includes('inactivity')) return 'text-red-400 bg-red-500/10 border-red-500/30';
+        if (type.includes('expiry') || type.includes('warning') || type.includes('adherence')) return 'text-yellow-400 bg-yellow-500/10 border-yellow-500/30';
+        return 'text-green-400 bg-green-500/10 border-green-500/30';
+    };
+
+    // Zaman farkı (relative time)
+    const timeAgo = (dateStr: string) => {
+        const diff = Date.now() - new Date(dateStr).getTime();
+        const mins = Math.floor(diff / 60000);
+        if (mins < 60) return `${mins} dk önce`;
+        const hours = Math.floor(mins / 60);
+        if (hours < 24) return `${hours} saat önce`;
+        const days = Math.floor(hours / 24);
+        return `${days} gün önce`;
+    };
     const handleGenerate = async () => {
         setIsGenerating(true);
         try {
@@ -146,17 +216,28 @@ const AgenticDashboard = () => {
         <div className="min-h-screen bg-background">
             {/* Header */}
             <header className="sticky top-0 z-30 glass border-b border-border/50 px-4 lg:px-8 py-4">
-                <div className="max-w-7xl mx-auto flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
-                            <Zap className="w-5 h-5 text-white" />
-                        </div>
-                        <div>
-                            <h1 className="text-xl font-bold text-foreground">Agentic AI Dashboard</h1>
-                            <p className="text-sm text-muted-foreground">Danışan durumlarını takip edin</p>
+                <div className="max-w-7xl mx-auto flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                    <div className="space-y-3">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => navigate("/dietitian-dashboard")}
+                            className="w-fit rounded-full border-border/70 bg-background/60 px-3"
+                        >
+                            <ArrowLeft className="w-4 h-4 mr-2" />
+                            Diyetisyen paneline dön
+                        </Button>
+                        <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
+                                <Zap className="w-5 h-5 text-white" />
+                            </div>
+                            <div>
+                                <h1 className="text-xl font-bold text-foreground">Agentic AI Dashboard</h1>
+                                <p className="text-sm text-muted-foreground">Danışan durumlarını takip edin</p>
+                            </div>
                         </div>
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex flex-wrap items-center gap-3">
                         <Button
                             variant="outline"
                             size="sm"
@@ -190,7 +271,34 @@ const AgenticDashboard = () => {
             </header>
 
             <main className="max-w-7xl mx-auto p-4 lg:p-8 space-y-6">
-                {report ? (
+                {/* Tab Bar */}
+                <div className="flex gap-1 p-1 rounded-xl bg-surface/50 border border-border/50 w-fit">
+                    <button
+                        onClick={() => handleTabChange('report')}
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                            activeTab === 'report'
+                                ? 'bg-primary text-white shadow-sm'
+                                : 'text-muted-foreground hover:text-foreground'
+                        }`}
+                    >
+                        <Zap className="w-4 h-4 inline mr-2" />
+                        Rapor
+                    </button>
+                    <button
+                        onClick={() => handleTabChange('monitor')}
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                            activeTab === 'monitor'
+                                ? 'bg-primary text-white shadow-sm'
+                                : 'text-muted-foreground hover:text-foreground'
+                        }`}
+                    >
+                        <Eye className="w-4 h-4 inline mr-2" />
+                        AI İzleme
+                    </button>
+                </div>
+
+                {/* Report Tab */}
+                {activeTab === 'report' && report ? (
                     <>
                         {/* Last Updated */}
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -352,35 +460,160 @@ const AgenticDashboard = () => {
                             </section>
                         )}
                     </>
-                ) : (
-                    <div className="text-center py-16 glass-card">
-                        <div className="w-16 h-16 rounded-full bg-purple-500/10 flex items-center justify-center mx-auto mb-4">
+                ) : activeTab === 'report' ? (
+                    <div className="glass-card p-8 sm:p-12 text-center">
+                        <div className="w-16 h-16 rounded-2xl bg-purple-500/10 flex items-center justify-center mx-auto mb-4">
                             <Zap className="w-8 h-8 text-purple-500" />
                         </div>
-                        <h3 className="font-medium text-foreground mb-2">Henüz Rapor Yok</h3>
+                        <h3 className="font-semibold text-foreground mb-2">Henüz rapor yok</h3>
                         <p className="text-sm text-muted-foreground mb-6 max-w-md mx-auto">
-                            "Şimdi Güncelle" butonuna tıklayarak ilk Agentic AI raporunuzu oluşturun.
+                            İlk Agentic AI raporunu oluşturduğunuzda riskli danışanlar ve özet içgörüler burada görünecek.
                         </p>
-                        <Button
-                            variant="neon"
-                            onClick={handleGenerate}
-                            disabled={isGenerating}
-                        >
+                        <Button variant="neon" onClick={handleGenerate} disabled={isGenerating} className="min-w-[220px]">
                             {isGenerating ? (
-                                <>
-                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                    Oluşturuluyor...
-                                </>
+                                <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Oluşturuluyor...</>
                             ) : (
-                                <>
-                                    <Zap className="w-4 h-4 mr-2" />
-                                    İlk Raporu Oluştur
-                                </>
+                                <><Zap className="w-4 h-4 mr-2" />İlk Raporu Oluştur</>
                             )}
                         </Button>
                     </div>
+                ) : null}
+
+                {/* Monitor Tab — AI İzleme */}
+                {activeTab === 'monitor' && (
+                    <div className="space-y-4">
+                        {/* Filtre */}
+                        <div className="flex items-center gap-3">
+                            <Filter className="w-4 h-4 text-muted-foreground" />
+                            <select
+                                value={logFilter}
+                                onChange={(e) => { setLogFilter(e.target.value); loadAgentLogs(1, e.target.value); }}
+                                className="bg-surface border border-border/50 rounded-lg px-3 py-1.5 text-sm text-foreground"
+                            >
+                                <option value="all">Tümü</option>
+                                <option value="notification_sent">Bildirimler</option>
+                                <option value="inactivity_warning">İnaktiflik</option>
+                                <option value="plan_expiry_alert">Plan Süresi</option>
+                                <option value="escalation_to_dietitian">Eskalasyonlar</option>
+                                <option value="adherence_check">Uyum Kontrolü</option>
+                                <option value="weekly_report">Haftalık Rapor</option>
+                            </select>
+                            <span className="text-xs text-muted-foreground ml-auto">{logsTotal} kayıt</span>
+                        </div>
+
+                        {/* Log Listesi */}
+                        {logsLoading ? (
+                            <div className="text-center py-12">
+                                <Loader2 className="w-6 h-6 animate-spin text-primary mx-auto" />
+                            </div>
+                        ) : agentLogs.length === 0 ? (
+                            <div className="glass-card p-8 sm:p-10 text-center">
+                                <Bot className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+                                <h3 className="font-semibold text-foreground mb-1">Henüz ajan eylemi yok</h3>
+                                <p className="text-sm text-muted-foreground">n8n ajanı aktif olduğunda bildirim, uyarı ve takip kayıtları burada listelenecek.</p>
+                            </div>
+                        ) : (
+                            <div className="space-y-2">
+                                {agentLogs.map((log) => (
+                                    <div
+                                        key={log.id}
+                                        onClick={() => setSelectedLog(log)}
+                                        className={`p-4 rounded-xl border cursor-pointer hover:border-primary/50 transition-colors ${getActionColor(log.action_type)}`}
+                                    >
+                                        <div className="flex items-center justify-between mb-1">
+                                            <span className="text-sm font-medium">
+                                                {actionTypeLabels[log.action_type] || log.action_type}
+                                            </span>
+                                            <span className="text-xs opacity-70">{timeAgo(log.created_at)}</span>
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-sm opacity-80">
+                                                {log.member_name || log.member_id || '—'}
+                                            </span>
+                                            <span className="text-xs px-2 py-0.5 rounded bg-black/10">{log.triggered_by}</span>
+                                        </div>
+                                        {log.reasoning && (
+                                            <p className="text-xs opacity-60 mt-1 line-clamp-1">"{log.reasoning}"</p>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
+                        {/* Pagination */}
+                        {logsTotal > 20 && (
+                            <div className="flex justify-center gap-2 pt-2">
+                                <Button variant="outline" size="sm" disabled={logsPage <= 1} onClick={() => loadAgentLogs(logsPage - 1)}>
+                                    Önceki
+                                </Button>
+                                <span className="text-sm text-muted-foreground py-1.5">
+                                    {logsPage} / {Math.ceil(logsTotal / 20)}
+                                </span>
+                                <Button variant="outline" size="sm" disabled={logsPage >= Math.ceil(logsTotal / 20)} onClick={() => loadAgentLogs(logsPage + 1)}>
+                                    Sonraki
+                                </Button>
+                            </div>
+                        )}
+                    </div>
                 )}
             </main>
+
+            {/* Log Detay Modal */}
+            {selectedLog && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setSelectedLog(null)}>
+                    <div className="glass-card w-full max-w-lg mx-4 p-6 space-y-4" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center justify-between">
+                            <h3 className="text-lg font-semibold text-foreground">
+                                {actionTypeLabels[selectedLog.action_type] || selectedLog.action_type}
+                            </h3>
+                            <button onClick={() => setSelectedLog(null)} className="text-muted-foreground hover:text-foreground">
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        <div className="space-y-3 text-sm">
+                            <div className="flex justify-between">
+                                <span className="text-muted-foreground">Danışan</span>
+                                <span className="text-foreground">{selectedLog.member_name || selectedLog.member_id || '—'}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-muted-foreground">Tetikleyici</span>
+                                <span className="text-foreground">{selectedLog.triggered_by}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-muted-foreground">Durum</span>
+                                <span className="text-foreground">{selectedLog.status}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-muted-foreground">Tarih</span>
+                                <span className="text-foreground">{new Date(selectedLog.created_at).toLocaleString('tr-TR')}</span>
+                            </div>
+                            {selectedLog.n8n_execution_id && (
+                                <div className="flex justify-between">
+                                    <span className="text-muted-foreground">n8n ID</span>
+                                    <span className="text-foreground font-mono text-xs">{selectedLog.n8n_execution_id}</span>
+                                </div>
+                            )}
+                        </div>
+
+                        {selectedLog.reasoning && (
+                            <div className="pt-2 border-t border-border/50">
+                                <h4 className="text-sm font-medium text-foreground mb-1">🧠 AI Muhakemesi</h4>
+                                <p className="text-sm text-muted-foreground">{selectedLog.reasoning}</p>
+                            </div>
+                        )}
+
+                        {selectedLog.details && Object.keys(selectedLog.details).length > 0 && (
+                            <div className="pt-2 border-t border-border/50">
+                                <h4 className="text-sm font-medium text-foreground mb-1">📋 Detaylar</h4>
+                                <pre className="text-xs text-muted-foreground bg-surface/50 rounded-lg p-3 overflow-auto max-h-40">
+                                    {JSON.stringify(selectedLog.details, null, 2)}
+                                </pre>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

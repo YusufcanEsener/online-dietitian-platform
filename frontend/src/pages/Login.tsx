@@ -2,10 +2,11 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { GoogleLogin, CredentialResponse } from "@react-oauth/google";
 import { Button } from "@/components/ui/button";
-import { Leaf, Loader2, Eye, EyeOff } from "lucide-react";
+import { AlertCircle, Eye, EyeOff, Leaf, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { API_BASE_URL } from "@/lib/api";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const Login = () => {
     const navigate = useNavigate();
@@ -15,6 +16,7 @@ const Login = () => {
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [approvalMessage, setApprovalMessage] = useState<string | null>(null);
 
     if (isAuthenticated && user) {
         if (user.role === 'admin') navigate('/admin', { replace: true });
@@ -44,16 +46,12 @@ const Login = () => {
                     localStorage.removeItem('access_token');
                     localStorage.removeItem('user');
 
-                    toast({
-                        title: "Hesap Onay Bekliyor",
-                        description: "Diyetisyen hesabınız henüz onaylanmamıştır. Onay işlemi tamamlandığında e-posta ile bilgilendirileceksiniz.",
-                        variant: "destructive",
-                        duration: 8000
-                    });
+                    setApprovalMessage("Diyetisyen hesabınız henüz onaylanmadı. Onay işlemi tamamlandığında e-posta ile bilgilendirileceksiniz.");
                     setIsLoading(false);
                     return;
                 }
 
+                setApprovalMessage(null);
                 toast({ title: "Giriş Başarılı", description: "Yönlendiriliyorsunuz..." });
                 setTimeout(() => {
                     if (userData.role === 'admin') navigate('/admin');
@@ -63,8 +61,16 @@ const Login = () => {
             } else {
                 navigate('/dashboard');
             }
-        } catch (error: any) {
-            toast({ title: "Giriş Başarısız", description: error.response?.data?.detail || "E-posta veya şifre hatalı", variant: "destructive" });
+        } catch (error: unknown) {
+            const errorDetail =
+                typeof error === "object" &&
+                error !== null &&
+                "response" in error &&
+                typeof (error as { response?: { data?: { detail?: string } } }).response?.data?.detail === "string"
+                    ? (error as { response?: { data?: { detail?: string } } }).response?.data?.detail
+                    : undefined;
+            setApprovalMessage(null);
+            toast({ title: "Giriş Başarısız", description: errorDetail || "E-posta veya şifre hatalı", variant: "destructive" });
         } finally {
             setIsLoading(false);
         }
@@ -98,16 +104,12 @@ const Login = () => {
                 if (userData.role === 'dietitian' && userData.is_approved === false) {
                     localStorage.removeItem('access_token');
                     localStorage.removeItem('user');
-                    toast({
-                        title: "Hesap Onay Bekliyor",
-                        description: "Diyetisyen hesabınız henüz onaylanmamıştır.",
-                        variant: "destructive",
-                        duration: 8000
-                    });
+                    setApprovalMessage("Diyetisyen hesabınız henüz onaylanmadı. Onay işlemi tamamlandığında e-posta ile bilgilendirileceksiniz.");
                     setIsLoading(false);
                     return;
                 }
 
+                setApprovalMessage(null);
                 toast({ title: "Giriş Başarılı", description: "Google ile giriş yapıldı" });
                 if (userData.role === 'admin') navigate('/admin');
                 else if (userData.role === 'dietitian') navigate('/dietitian-dashboard');
@@ -117,6 +119,7 @@ const Login = () => {
             }
         } catch (error) {
             console.error('Google login error:', error);
+            setApprovalMessage(null);
             toast({ title: "Hata", description: "Google ile giriş başarısız", variant: "destructive" });
         } finally {
             setIsLoading(false);
@@ -163,6 +166,14 @@ const Login = () => {
                         <span className="px-2 bg-background text-muted-foreground">veya e-posta ile</span>
                     </div>
                 </div>
+
+                {approvalMessage && (
+                    <Alert className="mb-6 border-amber-500/30 bg-amber-500/10 text-foreground">
+                        <AlertCircle className="h-4 w-4 text-amber-500" />
+                        <AlertTitle>Diyetisyen onayı bekleniyor</AlertTitle>
+                        <AlertDescription>{approvalMessage}</AlertDescription>
+                    </Alert>
+                )}
 
                 <form onSubmit={handleLogin} className="space-y-4">
                     <div>

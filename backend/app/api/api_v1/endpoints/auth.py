@@ -60,6 +60,11 @@ async def login_access_token(form_data: OAuth2PasswordRequestForm = Depends()) -
     if not user.is_active:
         raise HTTPException(status_code=400, detail="Inactive user")
     
+    # Agentic AI: Member ise last_login_at güncelle
+    if isinstance(user, Member):
+        user.last_login_at = datetime.utcnow()
+        await user.save()
+
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = security.create_access_token(
         user.id, expires_delta=access_token_expires
@@ -235,6 +240,11 @@ async def google_auth(request: GoogleAuthRequest) -> Any:
             raise HTTPException(status_code=400, detail="Diyetisyen hesabınız henüz onaylanmadı. Admin onayı bekleniyor.")
         raise HTTPException(status_code=400, detail="Hesabınız aktif değil")
     
+    # Agentic AI: Member ise last_login_at güncelle
+    if isinstance(user, Member):
+        user.last_login_at = datetime.utcnow()
+        await user.save()
+
     # Token oluştur
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = security.create_access_token(

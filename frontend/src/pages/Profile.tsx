@@ -99,8 +99,15 @@ const Profile = () => {
       await refreshUser();
       toast({ title: "Başarılı", description: "Profil güncellendi" });
       setIsEditing(false);
-    } catch (error: any) {
-      toast({ title: "Hata", description: error.response?.data?.detail || "Güncelleme başarısız", variant: "destructive" });
+    } catch (error: unknown) {
+      const errorDetail =
+        typeof error === "object" &&
+        error !== null &&
+        "response" in error &&
+        typeof (error as { response?: { data?: { detail?: string } } }).response?.data?.detail === "string"
+          ? (error as { response?: { data?: { detail?: string } } }).response?.data?.detail
+          : undefined;
+      toast({ title: "Hata", description: errorDetail || "Güncelleme başarısız", variant: "destructive" });
     } finally {
       setIsSaving(false);
     }
@@ -131,8 +138,10 @@ const Profile = () => {
     { label: "Hedef", value: memberData?.target_weight ? `${memberData.target_weight} kg` : "-", icon: Award },
   ];
 
+  const dashboardRoute = user?.role === "dietitian" ? "/dietitian-dashboard" : "/dashboard";
+
   return (
-    <DashboardLayout>
+    <DashboardLayout title="Profil" showBack={true} backFallback={dashboardRoute}>
       <div className="p-4 lg:p-8">
         {/* Header Card */}
         <div className="glass-card p-6 lg:p-8 mb-8">

@@ -21,7 +21,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import * as dietitianService from "@/services/dietitianDashboardService";
 import * as aiService from "@/services/aiService";
 import { useToast } from "@/hooks/use-toast";
-import { useNotifications } from "@/contexts/NotificationContext";
 import NotificationBell from "@/components/NotificationBell";
 import type { MemberFullDetail, PlanSummary, DailyLogEntry } from "@/services/dietitianDashboardService";
 
@@ -30,7 +29,6 @@ const MemberDetail = () => {
     const navigate = useNavigate();
     const { user, isAuthenticated, isLoading: authLoading } = useAuth();
     const { toast } = useToast();
-    const { addNotification } = useNotifications();
 
     const [member, setMember] = useState<MemberFullDetail | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -51,10 +49,9 @@ const MemberDetail = () => {
 
             if (result.success && result.analysis) {
                 setAiAnalysis(result.analysis);
-                addNotification({
-                    title: '🤖 AI Analizi Tamamlandı',
-                    message: `${member?.full_name || 'Danışan'} için AI analiz raporu hazırlandı.`,
-                    type: 'info'
+                toast({
+                    title: "AI analiz hazır",
+                    description: `${member?.full_name || 'Danışan'} için rapor oluşturuldu.`
                 });
             } else {
                 toast({

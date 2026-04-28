@@ -1,5 +1,5 @@
 # docker-compose.yml - Online Dietitian Platform (PRODUCTION HARDENED)
-# Kullanım: docker compose --env-file .env.production up -d --build
+# Kullanım: docker compose --env-file .env up -d --build
 #
 # Network mimarisi:
 #   frontend-net: frontend ↔ backend (dış erişim açık)
@@ -16,8 +16,8 @@ services:
     # GÜVENLIK: Port dışarıya AÇILMAZ. Sadece sunucunun kendi içine (127.0.0.1) açılır, böylece SSH Tüneli ile bağlanılabilir.
     expose:
       - "27017"
-    ports:
-      - "127.0.0.1:27017:27017"
+    #ports:
+    #  - "127.0.0.1:27017:27017"
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}

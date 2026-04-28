@@ -86,10 +86,17 @@ const Settings = () => {
       setPasswordModalOpen(false);
       setPasswordForm({ current_password: "", new_password: "", confirm_password: "" });
       toast({ title: "Başarılı", description: "Şifreniz başarıyla değiştirildi" });
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorDetail =
+        typeof error === "object" &&
+        error !== null &&
+        "response" in error &&
+        typeof (error as { response?: { data?: { detail?: string } } }).response?.data?.detail === "string"
+          ? (error as { response?: { data?: { detail?: string } } }).response?.data?.detail
+          : undefined;
       toast({
         title: "Hata",
-        description: error.response?.data?.detail || "Şifre değiştirme başarısız",
+        description: errorDetail || "Şifre değiştirme başarısız",
         variant: "destructive"
       });
     } finally {
@@ -121,11 +128,13 @@ const Settings = () => {
     }
   ];
 
+  const dashboardRoute = user?.role === "dietitian" ? "/dietitian-dashboard" : "/dashboard";
+
   return (
-    <DashboardLayout>
+    <DashboardLayout title="Ayarlar" showBack={true} backFallback={dashboardRoute}>
       <div className="p-4 lg:p-8 max-w-3xl">
         {/* Header */}
-        <header className="mb-8">
+        <header className="hidden lg:block mb-8">
           <h1 className="text-2xl lg:text-3xl font-bold text-foreground mb-2">
             <span className="gradient-text">Ayarlar</span>
           </h1>

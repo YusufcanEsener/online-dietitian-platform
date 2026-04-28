@@ -8,7 +8,6 @@ import {
     Trash2,
     Loader2,
     Check,
-    AlertCircle,
     Calculator,
     Sparkles,
     Bot,
@@ -22,7 +21,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import * as dietitianService from "@/services/dietitianDashboardService";
 import * as aiService from "@/services/aiService";
 import { useToast } from "@/hooks/use-toast";
-import { useNotifications } from "@/contexts/NotificationContext";
 import NotificationBell from "@/components/NotificationBell";
 import type { DietitianMember, NutritionPlanCreate, Meal, DailyTargets, Food, SavedCalorieData } from "@/services/dietitianDashboardService";
 
@@ -31,7 +29,6 @@ const CreateNutritionPlan = () => {
     const navigate = useNavigate();
     const { user, isAuthenticated, isLoading: authLoading } = useAuth();
     const { toast } = useToast();
-    const { addNotification } = useNotifications();
 
     const [member, setMember] = useState<DietitianMember | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -151,11 +148,6 @@ const CreateNutritionPlan = () => {
                 })));
                 setAiPlanGenerated(true);
                 toast({ title: "✨ AI Planı Oluşturuldu", description: "Öğünler ve hedefler forma aktarıldı. İstediğiniz gibi düzenleyebilirsiniz." });
-                addNotification({
-                    title: "✨ AI Planı Hazır",
-                    message: `${menuType === 'weekly' ? 'Haftalık' : 'Günlük'} beslenme planı oluşturuldu. Düzenleyip kaydedebilirsiniz.`,
-                    type: 'success'
-                });
             } else {
                 toast({ title: "Hata", description: result.error || "AI planı oluşturulamadı", variant: "destructive" });
             }
@@ -177,7 +169,7 @@ const CreateNutritionPlan = () => {
         setMeals(newMeals);
     };
 
-    const handleMealChange = (index: number, field: keyof Meal, value: any) => {
+    const handleMealChange = (index: number, field: keyof Meal, value: Meal[keyof Meal]) => {
         const newMeals = [...meals];
         newMeals[index] = { ...newMeals[index], [field]: value };
         setMeals(newMeals);
@@ -227,12 +219,6 @@ const CreateNutritionPlan = () => {
 
             await dietitianService.createNutritionPlan(planData);
             toast({ title: "Başarılı", description: "Beslenme programı oluşturuldu" });
-            addNotification({
-                title: "📋 Yeni Program Oluşturuldu",
-                message: `"${title}" başlıklı beslenme programı ${member?.full_name || 'danışan'} için kaydedildi.`,
-                type: 'success',
-                link: `/dietitian-dashboard`
-            });
             navigate("/dietitian-dashboard");
         } catch (error) {
             console.error("Error saving plan:", error);

@@ -2,10 +2,10 @@ import { useState, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { GoogleLogin, CredentialResponse } from "@react-oauth/google";
 import { Button } from "@/components/ui/button";
-import { Leaf, Loader2, Eye, EyeOff, Check, X } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { AlertCircle, Check, CheckCircle2, Eye, EyeOff, Leaf, Loader2, X } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { API_BASE_URL } from "@/lib/api";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 // Şifre güçlülük hesaplama
 const getPasswordStrength = (password: string): { score: number; label: string; color: string } => {
@@ -67,7 +67,6 @@ const PasswordStrengthBar = ({ password }: { password: string }) => {
 
 const Register = () => {
     const navigate = useNavigate();
-    const { toast } = useToast();
     const { register } = useAuth();
     const [isLoading, setIsLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
@@ -76,6 +75,12 @@ const Register = () => {
     const [formData, setFormData] = useState({
         firstName: "", lastName: "", email: "", password: "", confirmPassword: ""
     });
+    const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof typeof formData | "acceptTerms", string>>>({});
+    const [formMessage, setFormMessage] = useState<{
+        type: "error" | "success" | "info";
+        title: string;
+        description: string;
+    } | null>(null);
 
     // Şifre eşleşme kontrolü
     const passwordsMatch = useMemo(() => {
@@ -83,34 +88,47 @@ const Register = () => {
         return formData.password === formData.confirmPassword;
     }, [formData.password, formData.confirmPassword]);
 
-    // Form geçerlilik kontrolü
-    const isFormValid = useMemo(() => {
-        const basicValid = formData.firstName && formData.lastName && formData.email &&
-            formData.password && formData.confirmPassword && acceptTerms;
-        const passwordValid = formData.password.length >= 8 && formData.password === formData.confirmPassword;
-        return basicValid && passwordValid;
-    }, [formData, acceptTerms]);
+    const updateField = (field: keyof typeof formData, value: string) => {
+        setFormData(prev => ({ ...prev, [field]: value }));
+        setFieldErrors(prev => ({ ...prev, [field]: undefined }));
+        setFormMessage(null);
+    };
+
+    const validateForm = () => {
+        const nextErrors: Partial<Record<keyof typeof formData | "acceptTerms", string>> = {};
+
+        if (!formData.firstName.trim()) nextErrors.firstName = "Ad alanı zorunludur.";
+        if (!formData.lastName.trim()) nextErrors.lastName = "Soyad alanı zorunludur.";
+        if (!formData.email.trim()) nextErrors.email = "E-posta alanı zorunludur.";
+        if (!formData.password) nextErrors.password = "Şifre alanı zorunludur.";
+        if (formData.password && formData.password.length < 8) {
+            nextErrors.password = "Şifre en az 8 karakter olmalıdır.";
+        }
+        if (!formData.confirmPassword) nextErrors.confirmPassword = "Şifre tekrar alanı zorunludur.";
+        if (formData.confirmPassword && formData.password !== formData.confirmPassword) {
+            nextErrors.confirmPassword = "Şifreler eşleşmiyor.";
+        }
+        if (!acceptTerms) nextErrors.acceptTerms = "Devam etmek için kullanım şartlarını kabul etmelisiniz.";
+
+        setFieldErrors(nextErrors);
+
+        if (Object.keys(nextErrors).length > 0) {
+            setFormMessage({
+                type: "error",
+                title: "Formu kontrol edin",
+                description: "Lütfen eksik veya hatalı alanları düzeltin."
+            });
+            return false;
+        }
+
+        setFormMessage(null);
+        return true;
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!formData.firstName || !formData.lastName || !formData.email || !formData.password) {
-            toast({ title: "Hata", description: "Zorunlu alanları doldurun", variant: "destructive" });
-            return;
-        }
-
-        if (formData.password.length < 8) {
-            toast({ title: "Hata", description: "Şifre en az 8 karakter olmalıdır", variant: "destructive" });
-            return;
-        }
-
-        if (formData.password !== formData.confirmPassword) {
-            toast({ title: "Hata", description: "Şifreler eşleşmiyor", variant: "destructive" });
-            return;
-        }
-
-        if (!acceptTerms) {
-            toast({ title: "Hata", description: "Kullanım şartlarını kabul etmelisiniz", variant: "destructive" });
+        if (!validateForm()) {
             return;
         }
 
@@ -118,11 +136,26 @@ const Register = () => {
         try {
             const fullName = `${formData.firstName} ${formData.lastName}`;
             await register(formData.email, formData.password, fullName);
-            toast({ title: "Kayıt Başarılı", description: "Giriş yapabilirsiniz" });
+            setFormMessage({
+                type: "success",
+                title: "Kayıt başarılı",
+                description: "Hesabınız oluşturuldu. Giriş sayfasına yönlendiriliyorsunuz."
+            });
             
             setTimeout(() => navigate("/login"), 1500);
-        } catch (error: any) {
-            toast({ title: "Kayıt Başarısız", description: error.response?.data?.detail || "Bir hata oluştu", variant: "destructive" });
+        } catch (error: unknown) {
+            const errorDetail =
+                typeof error === "object" &&
+                error !== null &&
+                "response" in error &&
+                typeof (error as { response?: { data?: { detail?: string } } }).response?.data?.detail === "string"
+                    ? (error as { response?: { data?: { detail?: string } } }).response?.data?.detail
+                    : undefined;
+            setFormMessage({
+                type: "error",
+                title: "Kayıt başarısız",
+                description: errorDetail || "Bir hata oluştu."
+            });
         } finally {
             setIsLoading(false);
         }
@@ -131,7 +164,11 @@ const Register = () => {
     // Google OAuth Success Handler
     const handleGoogleSuccess = async (credentialResponse: CredentialResponse) => {
         if (!credentialResponse.credential) {
-            toast({ title: "Hata", description: "Google token alınamadı", variant: "destructive" });
+            setFormMessage({
+                type: "error",
+                title: "Google ile kayıt başarısız",
+                description: "Google token alınamadı."
+            });
             return;
         }
 
@@ -151,18 +188,30 @@ const Register = () => {
                 });
                 const userData = await userRes.json();
                 localStorage.setItem('user', JSON.stringify(userData));
-                toast({ title: "Kay\u0131t Ba\u015far\u0131l\u0131", description: "Google ile giri\u015f yap\u0131ld\u0131" });
+                setFormMessage({
+                    type: "success",
+                    title: "Kayıt başarılı",
+                    description: "Google hesabınız ile giriş yapılıyor."
+                });
                 if (userData.role === 'dietitian') {
                     navigate('/dietitian-dashboard');
                 } else {
                     navigate('/dashboard');
                 }
             } else {
-                toast({ title: "Hata", description: data.detail || "Google ile kay\u0131t ba\u015far\u0131s\u0131z", variant: "destructive" });
+                setFormMessage({
+                    type: "error",
+                    title: "Google ile kayıt başarısız",
+                    description: data.detail || "Google ile kayıt başarısız."
+                });
             }
         } catch (error) {
             console.error('Google register error:', error);
-            toast({ title: "Hata", description: "Google ile kay\u0131t ba\u015far\u0131s\u0131z", variant: "destructive" });
+            setFormMessage({
+                type: "error",
+                title: "Google ile kayıt başarısız",
+                description: "Google ile kayıt başarısız."
+            });
         } finally {
             setIsLoading(false);
         }
@@ -170,7 +219,11 @@ const Register = () => {
 
     // Google OAuth Error Handler
     const handleGoogleError = () => {
-        toast({ title: "Hata", description: "Google ile kay\u0131t ba\u015far\u0131s\u0131z. L\u00fctfen tekrar deneyin.", variant: "destructive" });
+        setFormMessage({
+            type: "error",
+            title: "Google ile kayıt başarısız",
+            description: "Lütfen tekrar deneyin."
+        });
     };
 
     return (
@@ -210,6 +263,27 @@ const Register = () => {
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
+                    {formMessage && (
+                        <Alert
+                            variant={formMessage.type === "error" ? "destructive" : "default"}
+                            className={
+                                formMessage.type === "success"
+                                    ? "border-green-500/30 bg-green-500/10 text-foreground"
+                                    : formMessage.type === "info"
+                                      ? "border-primary/30 bg-primary/10 text-foreground"
+                                      : undefined
+                            }
+                        >
+                            {formMessage.type === "success" ? (
+                                <CheckCircle2 className="h-4 w-4 text-green-500" />
+                            ) : (
+                                <AlertCircle className="h-4 w-4" />
+                            )}
+                            <AlertTitle>{formMessage.title}</AlertTitle>
+                            <AlertDescription>{formMessage.description}</AlertDescription>
+                        </Alert>
+                    )}
+
                     {/* Diyetisyen Bilgilendirme Kartı */}
                     <div className="p-4 mb-6 rounded-xl bg-primary/10 border border-primary/20 text-center">
                         <h3 className="text-sm font-semibold text-primary mb-1">Diyetisyen Girişi</h3>
@@ -223,20 +297,23 @@ const Register = () => {
                     <div className="grid grid-cols-2 gap-4">
                         <div>
                             <label className="text-sm font-medium text-foreground">Ad *</label>
-                            <input type="text" value={formData.firstName} onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                            <input type="text" value={formData.firstName} onChange={(e) => updateField("firstName", e.target.value)}
                                 className="w-full h-12 mt-1 px-4 rounded-xl bg-surface border border-border focus:border-primary outline-none text-foreground" disabled={isLoading} />
+                            {fieldErrors.firstName && <p className="mt-1 text-xs text-red-500">{fieldErrors.firstName}</p>}
                         </div>
                         <div>
                             <label className="text-sm font-medium text-foreground">Soyad *</label>
-                            <input type="text" value={formData.lastName} onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                            <input type="text" value={formData.lastName} onChange={(e) => updateField("lastName", e.target.value)}
                                 className="w-full h-12 mt-1 px-4 rounded-xl bg-surface border border-border focus:border-primary outline-none text-foreground" disabled={isLoading} />
+                            {fieldErrors.lastName && <p className="mt-1 text-xs text-red-500">{fieldErrors.lastName}</p>}
                         </div>
                     </div>
 
                     <div>
                         <label className="text-sm font-medium text-foreground">E-posta *</label>
-                        <input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                        <input type="email" value={formData.email} onChange={(e) => updateField("email", e.target.value)}
                             className="w-full h-12 mt-1 px-4 rounded-xl bg-surface border border-border focus:border-primary outline-none text-foreground" disabled={isLoading} />
+                        {fieldErrors.email && <p className="mt-1 text-xs text-red-500">{fieldErrors.email}</p>}
                     </div>
 
                     <div>
@@ -245,7 +322,7 @@ const Register = () => {
                             <input
                                 type={showPassword ? "text" : "password"}
                                 value={formData.password}
-                                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                                onChange={(e) => updateField("password", e.target.value)}
                                 className="w-full h-12 mt-1 px-4 pr-12 rounded-xl bg-surface border border-border focus:border-primary outline-none text-foreground"
                                 disabled={isLoading}
                             />
@@ -257,6 +334,7 @@ const Register = () => {
                                 {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                             </button>
                         </div>
+                        {fieldErrors.password && <p className="mt-1 text-xs text-red-500">{fieldErrors.password}</p>}
                         <PasswordStrengthBar password={formData.password} />
                     </div>
 
@@ -266,7 +344,7 @@ const Register = () => {
                             <input
                                 type={showConfirmPassword ? "text" : "password"}
                                 value={formData.confirmPassword}
-                                onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                                onChange={(e) => updateField("confirmPassword", e.target.value)}
                                 className={`w-full h-12 mt-1 px-4 pr-12 rounded-xl bg-surface border outline-none text-foreground ${passwordsMatch === null ? 'border-border focus:border-primary' :
                                     passwordsMatch ? 'border-green-500' : 'border-red-500'
                                     }`}
@@ -288,6 +366,7 @@ const Register = () => {
                                 <Check className="w-3 h-3" /> Şifreler eşleşiyor
                             </p>
                         )}
+                        {fieldErrors.confirmPassword && <p className="mt-1 text-xs text-red-500">{fieldErrors.confirmPassword}</p>}
                     </div>
 
 
@@ -298,7 +377,11 @@ const Register = () => {
                             type="checkbox"
                             id="acceptTerms"
                             checked={acceptTerms}
-                            onChange={(e) => setAcceptTerms(e.target.checked)}
+                            onChange={(e) => {
+                                setAcceptTerms(e.target.checked);
+                                setFieldErrors(prev => ({ ...prev, acceptTerms: undefined }));
+                                setFormMessage(null);
+                            }}
                             className="mt-1 w-4 h-4 rounded border-border bg-surface text-primary focus:ring-primary cursor-pointer"
                             disabled={isLoading}
                         />
@@ -309,12 +392,13 @@ const Register = () => {
                             'nı (KVKK) okudum ve kabul ediyorum. *
                         </label>
                     </div>
+                    {fieldErrors.acceptTerms && <p className="text-xs text-red-500">{fieldErrors.acceptTerms}</p>}
 
                     <Button
                         type="submit"
                         variant="neon"
                         className="w-full h-12 mt-4"
-                        disabled={isLoading || !isFormValid}
+                        disabled={isLoading}
                     >
                         {isLoading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Kayıt yapılıyor...</> : "Kayıt Ol"}
                     </Button>

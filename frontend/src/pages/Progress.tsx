@@ -1,5 +1,6 @@
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
-import { TrendingDown, TrendingUp, Target, Calendar, Scale, Ruler } from "lucide-react";
+import { TrendingDown, TrendingUp, Target, Calendar, Scale } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 const weightHistory = [
   { date: "1 Oca", weight: 85.0 },
@@ -20,6 +21,7 @@ const stats = [
 ];
 
 const Progress = () => {
+  const { user } = useAuth();
   const maxWeight = Math.max(...weightHistory.map((w) => w.weight));
   const minWeight = Math.min(...weightHistory.map((w) => w.weight));
   const range = maxWeight - minWeight;
@@ -30,12 +32,13 @@ const Progress = () => {
   const totalToLose = startWeight - targetWeight;
   const lost = startWeight - currentWeight;
   const progressPercentage = (lost / totalToLose) * 100;
+  const dashboardRoute = user?.role === "dietitian" ? "/dietitian-dashboard" : "/dashboard";
 
   return (
-    <DashboardLayout>
+    <DashboardLayout title="İlerleme" showBack={true} backFallback={dashboardRoute}>
       <div className="p-4 lg:p-8">
         {/* Header */}
-        <header className="mb-8">
+        <header className="hidden lg:block mb-8">
           <h1 className="text-2xl lg:text-3xl font-bold text-foreground mb-2">
             Kilo <span className="gradient-text">İlerlemesi</span>
           </h1>

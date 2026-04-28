@@ -20,6 +20,7 @@ class Settings(BaseSettings):
 
     # n8n webhook base URL (sondaki slash olmadan)
     N8N_BASE_URL: str = "http://n8n:5678"
+    N8N_AGENT_SECRET: str = ""  # n8n agent endpoint güvenlik anahtarı
 
     # CORS izin verilen origin'ler (virgülle ayrılmış)
     CORS_ORIGINS: str = ""

@@ -29,16 +29,16 @@ jobs:
             git fetch origin main
             git reset --hard origin/main
 
-            # .env.production dosyası kontrol
-            if [ ! -f .env.production ]; then
-              echo "❌ HATA: .env.production dosyası bulunamadı!"
-              echo "Sunucuda .env.production dosyasını oluşturun."
+            # .env dosyası kontrol
+            if [ ! -f .env ]; then
+              echo "❌ HATA: .env dosyası bulunamadı!"
+              echo "Sunucuda .env dosyasını oluşturun."
               exit 1
             fi
 
             # Servisleri yeniden build et ve başlat (--no-cache: eski build cache kullanma)
-            docker compose --env-file .env.production build --no-cache
-            docker compose --env-file .env.production up -d --force-recreate
+            docker compose --env-file .env build --no-cache
+            docker compose --env-file .env up -d --force-recreate
 
             # Kullanılmayan image'ları temizle
             docker image prune -f
@@ -49,16 +49,16 @@ jobs:
 
             # Container durumlarını kontrol et
             echo "📋 Container Durumları:"
-            docker compose --env-file .env.production ps
+            docker compose --env-file .env ps
 
             # Backend health check
-            HEALTH=$(docker compose --env-file .env.production exec -T backend python -c "import urllib.request; r=urllib.request.urlopen('http://localhost:8000/health'); print(r.read().decode())" 2>&1 || true)
+            HEALTH=$(docker compose --env-file .env exec -T backend python -c "import urllib.request; r=urllib.request.urlopen('http://localhost:8000/health'); print(r.read().decode())" 2>&1 || true)
             echo "🏥 Backend Health: $HEALTH"
 
             if echo "$HEALTH" | grep -q "healthy"; then
               echo "✅ Deploy başarılı: $(date)"
             else
               echo "⚠️ Backend health check başarısız. Logları kontrol edin:"
-              docker compose --env-file .env.production logs --tail=20 backend
+              docker compose --env-file .env logs --tail=20 backend
               exit 1
             fi

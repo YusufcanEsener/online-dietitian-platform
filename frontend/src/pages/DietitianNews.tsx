@@ -14,13 +14,15 @@ import {
   Heart,
   Share2,
   CheckCircle2,
-  Clock
+  Clock,
+  ArrowLeft
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { newsService, PubMedNewsItem, NewsInteraction } from "@/services/newsService";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { BottomNav } from "@/components/layout/BottomNav";
+import { Button } from "@/components/ui/button";
 
 // ─── Yardımcılar ──────────────────────────────────────────────
 function formatDate(iso?: string): string {
@@ -81,7 +83,7 @@ function NewsCard({ item, index, interaction, onInteract }: NewsCardProps) {
   const isFavorite = interaction?.is_favorite || false;
   
   let displayTitleTr = item.title_tr;
-  let displayTitleEn = item.title;
+  const displayTitleEn = item.title;
   let displaySummary = item.summary_tr;
 
   if (displaySummary && typeof displaySummary === 'string' && displaySummary.trim().startsWith('{')) {
@@ -320,8 +322,14 @@ export default function DietitianNews() {
       });
       setInteractions(intMap);
       
-    } catch (err: any) {
-      const msg = err.response?.data?.detail || "Haberler yüklenirken bir hata oluştu.";
+    } catch (err: unknown) {
+      const msg =
+        typeof err === "object" &&
+        err !== null &&
+        "response" in err &&
+        typeof (err as { response?: { data?: { detail?: string } } }).response?.data?.detail === "string"
+          ? (err as { response?: { data?: { detail?: string } } }).response?.data?.detail
+          : "Haberler yüklenirken bir hata oluştu.";
       setError(msg);
     } finally {
       setLoading(false);
@@ -373,18 +381,29 @@ export default function DietitianNews() {
       <main className="flex-1 lg:ml-72 pb-20 lg:pb-0">
         {/* ─── Header ─── */}
         <div className="sticky top-0 z-30 border-b border-border/50 bg-background/80 backdrop-blur-md">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-neon-gradient flex items-center justify-center neon-glow">
-                <Newspaper className="w-5 h-5 text-primary-foreground" />
-              </div>
-              <div>
-                <h1 className="text-lg font-bold gradient-text">
-                  Güncel Araştırmalar
-                </h1>
-                <p className="text-xs text-muted-foreground">
-                  PubMed · Her gün sabah güncellenir
-                </p>
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="space-y-3">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate("/dietitian-dashboard")}
+                className="w-fit rounded-full border-border/70 bg-background/60 px-3"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Diyetisyen paneline dön
+              </Button>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-neon-gradient flex items-center justify-center neon-glow">
+                  <Newspaper className="w-5 h-5 text-primary-foreground" />
+                </div>
+                <div>
+                  <h1 className="text-lg font-bold gradient-text">
+                    Güncel Araştırmalar
+                  </h1>
+                  <p className="text-xs text-muted-foreground">
+                    PubMed · Her gün sabah güncellenir
+                  </p>
+                </div>
               </div>
             </div>
 
@@ -488,16 +507,24 @@ export default function DietitianNews() {
 
           {/* Empty */}
           {!loading && !error && filteredNews.length === 0 && (
-            <div className="rounded-2xl border border-border/50 bg-card p-12 text-center">
+            <div className="rounded-2xl border border-border/50 bg-card p-8 sm:p-12 text-center">
               <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-4">
                 <Newspaper className="w-8 h-8 text-muted-foreground" />
               </div>
               <h3 className="text-base font-semibold text-foreground mb-2">
-                {activeTab === 'all' ? "Henüz haber yok" : activeTab === 'unread' ? "Tüm haberleri okudunuz!" : "Favori haberiniz bulunmuyor"}
+                {activeTab === 'all' ? "Henüz haber yok" : activeTab === 'unread' ? "Tüm haberleri okudunuz" : "Favori haberiniz bulunmuyor"}
               </h3>
-              <p className="text-sm text-muted-foreground">
-                {activeTab === 'all' ? "Sistem her gün güncel makaleleri çekecektir." : "Farklı sekmelere göz atabilirsiniz."}
+              <p className="text-sm text-muted-foreground mb-5">
+                {activeTab === 'all'
+                  ? "Yeni araştırmalar geldiğinde burada kartlar halinde listelenecek."
+                  : "İsterseniz tüm haberler sekmesine dönüp diğer içerikleri inceleyebilirsiniz."}
               </p>
+              <Button
+                variant="outline"
+                onClick={() => activeTab === 'all' ? fetchData(true) : setActiveTab('all')}
+              >
+                {activeTab === 'all' ? "Yeniden kontrol et" : "Tüm haberlere dön"}
+              </Button>
             </div>
           )}
 

@@ -74,7 +74,7 @@ export const Sidebar = () => {
 
       {/* Navigation */}
       <nav className="flex-1 px-4 py-6 space-y-2">
-      {menuItems.map((item, index) => {
+        {menuItems.map((item, index) => {
           const itemPath = item.path.split("?")[0];
           const isActive = location.pathname === itemPath ||
             (item.path.includes("?tab=members") && location.pathname === "/dietitian-dashboard" && location.search.includes("tab=members"));

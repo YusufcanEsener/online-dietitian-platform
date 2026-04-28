@@ -10,6 +10,8 @@ from app.models.agentic_report import AgenticReport
 from app.models.notification import Notification
 from app.models.pubmed_news import PubMedNews
 from app.models.user_news_interaction import UserNewsInteraction
+from app.models.agent_log import AgentLog
+from app.models.task_queue import AgentTask
 import logging
 
 logger = logging.getLogger(__name__)
@@ -46,10 +48,13 @@ async def init_db():
                 AgenticReport,
                 Notification,
                 PubMedNews,
-                UserNewsInteraction
+                UserNewsInteraction,
+                AgentLog,
+                AgentTask,
             ]
         )
         return client
     except Exception as e:
         logger.error(f"MongoDB bağlantı hatası: {e}")
         raise
+

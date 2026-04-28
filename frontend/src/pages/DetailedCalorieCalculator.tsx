@@ -15,10 +15,8 @@ import {
     Check,
     Loader2
 } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import * as dietitianService from "@/services/dietitianDashboardService";
-import { useNotifications } from "@/contexts/NotificationContext";
 
 interface CalorieResult {
     who: number;
@@ -42,9 +40,7 @@ interface MemberOption {
 const DetailedCalorieCalculator = () => {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
-    const { user } = useAuth();
     const { toast } = useToast();
-    const { addNotification } = useNotifications();
 
     // Form state
     const [gender, setGender] = useState<'male' | 'female'>('male');
@@ -132,13 +128,7 @@ const DetailedCalorieCalculator = () => {
             });
 
             setIsSaved(true);
-            const memberName = members.find(m => m.id === selectedMemberId)?.full_name || 'Danışan';
             toast({ title: "Başarılı", description: "Kalori bilgileri danışana kaydedildi" });
-            addNotification({
-                title: '🔥 Kalori Hesabı Kaydedildi',
-                message: `${memberName} için günlük kalori hedefi belirlendi: ${goal === 'lose' ? results.loseWeight : goal === 'gain' ? results.gainWeight : results.maintain} kcal`,
-                type: 'success'
-            });
             setTimeout(() => setIsSaved(false), 3000);
         } catch (error) {
             console.error("Save error:", error);
@@ -187,7 +177,7 @@ const DetailedCalorieCalculator = () => {
         const gainWeight = Math.round(tdee * 1.15); // +15%
 
         // Macro distribution based on goal
-        let targetCalories = goal === 'lose' ? loseWeight : goal === 'gain' ? gainWeight : maintain;
+        const targetCalories = goal === 'lose' ? loseWeight : goal === 'gain' ? gainWeight : maintain;
         const proteinPercent = goal === 'gain' ? 0.30 : 0.25;
         const carbPercent = goal === 'lose' ? 0.35 : 0.40;
         const fatPercent = goal === 'lose' ? 0.40 : 0.35;

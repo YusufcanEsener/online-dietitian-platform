@@ -637,14 +637,14 @@ const AdminPanel = () => {
                       <div className="glass-card p-8 relative overflow-hidden">
                         {/* Background gradient accent */}
                         <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-primary/10 to-transparent rounded-full -translate-y-1/2 translate-x-1/2" />
-                        
+
                         <div className="relative z-10">
                           <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
                             {/* Avatar */}
                             <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg shadow-primary/20">
                               <Stethoscope className="w-12 h-12 text-white" />
                             </div>
-                            
+
                             {/* Info */}
                             <div className="flex-1">
                               <div className="flex items-center gap-3 mb-2">

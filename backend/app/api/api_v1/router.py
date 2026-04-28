@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api.api_v1.endpoints import auth, dietitians, members, chat, subscriptions, admin, daily_logs, dietitian_dashboard, ai_router, notifications, news
+from app.api.api_v1.endpoints import auth, dietitians, members, chat, subscriptions, admin, daily_logs, dietitian_dashboard, ai_router, notifications, news, agent_router
 
 api_router = APIRouter()
 api_router.include_router(auth.router, prefix="/auth", tags=["auth"])
@@ -13,6 +13,7 @@ api_router.include_router(dietitian_dashboard.router, prefix="/dietitian", tags=
 api_router.include_router(ai_router.router, prefix="/ai", tags=["ai"])
 api_router.include_router(notifications.router, prefix="/notifications", tags=["notifications"])
 api_router.include_router(news.router, prefix="/news", tags=["pubmed-news"])
+api_router.include_router(agent_router.router, prefix="/agent", tags=["agent"])
 
 
 
