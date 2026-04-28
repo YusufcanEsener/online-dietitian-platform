@@ -284,15 +284,6 @@ const Register = () => {
                         </Alert>
                     )}
 
-                    {/* Diyetisyen Bilgilendirme Kartı */}
-                    <div className="p-4 mb-6 rounded-xl bg-primary/10 border border-primary/20 text-center">
-                        <h3 className="text-sm font-semibold text-primary mb-1">Diyetisyen Girişi</h3>
-                        <p className="text-xs text-muted-foreground">
-                            Platformda tek yetkili diyetisyen hesabı kullanılmaktadır. Yeni diyetisyen kaydı alınmamaktadır.
-                            <br/><br/>
-                            <Link to="/login" className="text-primary hover:underline font-medium">Uzman Girişi İçin Tıklayın</Link>
-                        </p>
-                    </div>
 
                     <div className="grid grid-cols-2 gap-4">
                         <div>
