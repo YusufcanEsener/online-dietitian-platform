@@ -127,6 +127,9 @@ const CreateNutritionPlan = () => {
                 member_id: memberId,
                 goal: aiGoal,
                 target_calories: targets.calories,
+                protein: targets.protein,
+                carbs: targets.carbs,
+                fat: targets.fat,
                 menu_type: menuType,
                 medications: medications.trim() || undefined,
                 allergies: allergies.trim() || undefined,
@@ -300,6 +303,40 @@ const CreateNutritionPlan = () => {
                                 <option value="muscle_gain">💪 Kas Yapmak</option>
                                 <option value="maintenance">⚖️ Kiloyu Korumak</option>
                             </select>
+                        </div>
+                    </div>
+
+                    {/* Row 1.5: Macros */}
+                    <div className="grid grid-cols-3 gap-3 mb-4">
+                        <div>
+                            <label className="text-xs font-medium text-muted-foreground block mb-1">Protein (g)</label>
+                            <input
+                                type="number"
+                                value={targets.protein || ''}
+                                onChange={(e) => setTargets({ ...targets, protein: Number(e.target.value) })}
+                                className="w-full h-10 px-3 rounded-lg bg-surface border border-border focus:border-purple-500 outline-none text-foreground"
+                                placeholder="Opsiyonel"
+                            />
+                        </div>
+                        <div>
+                            <label className="text-xs font-medium text-muted-foreground block mb-1">Karbonhidrat (g)</label>
+                            <input
+                                type="number"
+                                value={targets.carbs || ''}
+                                onChange={(e) => setTargets({ ...targets, carbs: Number(e.target.value) })}
+                                className="w-full h-10 px-3 rounded-lg bg-surface border border-border focus:border-purple-500 outline-none text-foreground"
+                                placeholder="Opsiyonel"
+                            />
+                        </div>
+                        <div>
+                            <label className="text-xs font-medium text-muted-foreground block mb-1">Yağ (g)</label>
+                            <input
+                                type="number"
+                                value={targets.fat || ''}
+                                onChange={(e) => setTargets({ ...targets, fat: Number(e.target.value) })}
+                                className="w-full h-10 px-3 rounded-lg bg-surface border border-border focus:border-purple-500 outline-none text-foreground"
+                                placeholder="Opsiyonel"
+                            />
                         </div>
                     </div>
 

@@ -30,7 +30,8 @@ import {
   Power,
   Eye,
   EyeOff,
-  Save
+  Save,
+  Zap
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -317,6 +318,13 @@ const AdminPanel = () => {
             <Stethoscope className="w-5 h-5" />
             <span className="font-medium">Diyetisyen Yönetimi</span>
           </button>
+          <Link
+            to="/admin/agentic-ai"
+            className="flex items-center gap-3 px-4 py-3 rounded-xl text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground transition-all duration-300"
+          >
+            <Zap className="w-5 h-5" />
+            <span className="font-medium">Agentic AI İzleme</span>
+          </Link>
           <Link
             to="/dashboard"
             className="flex items-center gap-3 px-4 py-3 rounded-xl text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground transition-all duration-300"

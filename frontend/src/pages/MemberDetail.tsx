@@ -135,13 +135,13 @@ const MemberDetail = () => {
                         </div>
                     </div>
                     <div className="flex items-center gap-2">
+                        <Button variant="ghost" onClick={handleAIAnalyze} disabled={isAnalyzing} className="text-blue-500 hover:text-blue-600 hover:bg-blue-500/10">
+                            {isAnalyzing ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Sparkles className="w-4 h-4 mr-2" />}
+                            n8n ile AI Analiz
+                        </Button>
                         <Button variant="ghost" onClick={() => navigate(`/dietitian/detailed-calorie-calculator?memberId=${memberId}`)}>
                             <Calculator className="w-4 h-4 mr-2" />
                             Detaylı Kalori Hesapla
-                        </Button>
-                        <Button variant="outline" onClick={handleAIAnalyze} disabled={isAnalyzing}>
-                            {isAnalyzing ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Sparkles className="w-4 h-4 mr-2" />}
-                            AI Analiz
                         </Button>
                         <Button variant="neon" onClick={() => navigate(`/dietitian/create-plan/${memberId}`)}>
                             <Plus className="w-4 h-4 mr-2" />
@@ -190,7 +190,7 @@ const MemberDetail = () => {
                     <button
                         onClick={() => setActiveTab('ai')}
                         className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === 'ai'
-                            ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
+                            ? 'bg-blue-500 text-white'
                             : 'text-muted-foreground hover:bg-surface'
                             }`}
                     >
@@ -374,70 +374,47 @@ const MemberDetail = () => {
                     </div>
                 )}
 
-                {/* AI Analysis Tab */}
+                {/* AI Tab */}
                 {activeTab === 'ai' && (
-                    <div className="glass-card p-6">
-                        <div className="flex items-center gap-3 mb-6">
-                            <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
-                                <Sparkles className="w-5 h-5 text-white" />
-                            </div>
-                            <div>
-                                <h2 className="text-lg font-semibold text-foreground">AI Analiz Raporu</h2>
-                                <p className="text-sm text-muted-foreground">Gemini AI tarafından oluşturuldu</p>
-                            </div>
+                    <div className="glass-card p-6 md:p-8">
+                        <div className="flex items-center justify-between mb-6 border-b border-border pb-4">
+                            <h2 className="text-xl font-bold flex items-center">
+                                <Sparkles className="w-6 h-6 mr-2 text-blue-500" />
+                                n8n AI Analiz Sonucu
+                            </h2>
+                            <Button 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={handleAIAnalyze}
+                                disabled={isAnalyzing}
+                            >
+                                {isAnalyzing ? 'Analiz Ediliyor...' : 'Yeniden Analiz Et'}
+                            </Button>
                         </div>
-
+                        
                         {isAnalyzing ? (
-                            <div className="flex flex-col items-center justify-center py-16">
-                                <Loader2 className="w-12 h-12 animate-spin text-purple-500 mb-4" />
-                                <p className="text-muted-foreground">AI danışanınızı analiz ediyor...</p>
-                                <p className="text-sm text-muted-foreground mt-2">Bu işlem 10-30 saniye sürebilir</p>
+                            <div className="flex flex-col items-center justify-center py-12 space-y-4">
+                                <Loader2 className="w-12 h-12 text-blue-500 animate-spin" />
+                                <p className="text-muted-foreground">n8n üzerinden AI analizi yapılıyor. Lütfen bekleyin...</p>
                             </div>
                         ) : aiAnalysis ? (
                             <div className="prose prose-invert max-w-none">
-                                <div className="bg-surface rounded-xl p-6 text-foreground leading-relaxed markdown-content">
-                                    <ReactMarkdown
-                                        components={{
-                                            h2: ({ children }) => <h2 className="text-xl font-bold text-primary mt-6 mb-3 border-b border-border pb-2">{children}</h2>,
-                                            h3: ({ children }) => <h3 className="text-lg font-semibold text-foreground mt-4 mb-2">{children}</h3>,
-                                            p: ({ children }) => <p className="mb-3 text-muted-foreground">{children}</p>,
-                                            ul: ({ children }) => <ul className="list-disc ml-6 mb-4 space-y-1">{children}</ul>,
-                                            li: ({ children }) => <li className="text-muted-foreground">{children}</li>,
-                                            strong: ({ children }) => <strong className="text-foreground font-semibold">{children}</strong>,
-                                            hr: () => <hr className="my-6 border-border" />,
-                                        }}
-                                    >
-                                        {aiAnalysis}
-                                    </ReactMarkdown>
-                                </div>
-                                <div className="mt-6 flex gap-3">
-                                    <Button variant="outline" onClick={handleAIAnalyze}>
-                                        <Sparkles className="w-4 h-4 mr-2" />
-                                        Yeniden Analiz Et
-                                    </Button>
-                                    <Button variant="neon" onClick={() => navigate(`/dietitian/create-plan/${memberId}`)}>
-                                        <Plus className="w-4 h-4 mr-2" />
-                                        Bu Önerilere Göre Plan Oluştur
-                                    </Button>
-                                </div>
+                                <ReactMarkdown>{aiAnalysis}</ReactMarkdown>
                             </div>
                         ) : (
-                            <div className="text-center py-16">
-                                <Sparkles className="w-16 h-16 mx-auto text-muted-foreground mb-4 opacity-50" />
-                                <h3 className="font-medium text-foreground mb-2">Henüz analiz yapılmadı</h3>
-                                <p className="text-sm text-muted-foreground mb-6">
-                                    AI, danışanınızın tüm verilerini analiz edip kişiselleştirilmiş öneriler sunacak
+                            <div className="flex flex-col items-center justify-center py-12 text-center space-y-4">
+                                <Sparkles className="w-12 h-12 text-muted-foreground opacity-50" />
+                                <h3 className="text-lg font-medium">Henüz Analiz Yapılmadı</h3>
+                                <p className="text-sm text-muted-foreground max-w-md">
+                                    Yukarıdaki butona tıklayarak n8n üzerinden danışanınız için kapsamlı bir yapay zeka analizi ve kişiselleştirilmiş öneriler alabilirsiniz.
                                 </p>
-                                <Button onClick={handleAIAnalyze} className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600">
-                                    <Sparkles className="w-4 h-4 mr-2" />
-                                    AI Analizi Başlat
+                                <Button onClick={handleAIAnalyze} className="bg-blue-500 hover:bg-blue-600 text-white mt-4">
+                                    Analizi Başlat
                                 </Button>
                             </div>
                         )}
                     </div>
                 )}
-
-
 
             </main>
         </div>

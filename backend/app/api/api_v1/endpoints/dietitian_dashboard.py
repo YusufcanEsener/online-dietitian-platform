@@ -168,12 +168,18 @@ async def create_nutrition_plan(
         member_id=plan_in.member_id,
         title=plan_in.title,
         description=plan_in.description,
-        start_date=plan_in.start_date,
-        end_date=plan_in.end_date,
+        start_date=datetime.combine(plan_in.start_date, datetime.min.time()),
+        end_date=datetime.combine(plan_in.end_date, datetime.min.time()) if plan_in.end_date else None,
         daily_targets=DailyTargets(**plan_in.daily_targets.dict()),
         meals=meals,
         notes=plan_in.notes,
     )
+    
+    print("----- DEBUG NEW PLAN TYPES -----", flush=True)
+    for k, v in new_plan.__dict__.items():
+        print(f"{k}: {type(v)}", flush=True)
+    print("--------------------------------", flush=True)
+
     await new_plan.insert()
 
     # --- Üyeye bildirim gönder ---
@@ -239,7 +245,7 @@ async def update_nutrition_plan(
     if plan_update.description is not None:
         plan.description = plan_update.description
     if plan_update.end_date is not None:
-        plan.end_date = plan_update.end_date
+        plan.end_date = datetime.combine(plan_update.end_date, datetime.min.time())
     if plan_update.is_active is not None:
         plan.is_active = plan_update.is_active
     if plan_update.daily_targets is not None:

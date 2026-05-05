@@ -72,7 +72,11 @@ async def update_user_me(
     if update_data.target_weight is not None:
         member.target_weight = update_data.target_weight
     if update_data.birth_date is not None:
-        member.birth_date = update_data.birth_date
+        from datetime import datetime as dt_cls
+        if isinstance(update_data.birth_date, dt_cls):
+            member.birth_date = update_data.birth_date
+        else:
+            member.birth_date = dt_cls.combine(update_data.birth_date, dt_cls.min.time())
     if update_data.gender is not None:
         member.gender = update_data.gender
     if update_data.activity_level is not None:

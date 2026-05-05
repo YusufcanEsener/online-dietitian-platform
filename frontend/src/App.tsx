@@ -24,8 +24,8 @@ import MemberDetail from "./pages/MemberDetail";
 
 // AI Sayfaları
 import CalorieCalculator from "./pages/CalorieCalculator";
-import DailyReport from "./pages/DailyReport";
-import AgenticDashboard from "./pages/AgenticDashboard";
+import AgenticDashboardAdmin from "./pages/AgenticDashboardAdmin";
+import AgenticDashboardDietitian from "./pages/AgenticDashboardDietitian";
 import DetailedCalorieCalculator from "./pages/DetailedCalorieCalculator";
 
 // Yasal Sayfalar
@@ -63,6 +63,7 @@ const App = () => (
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/admin" element={<AdminPanel />} />
+                <Route path="/admin/agentic-ai" element={<AgenticDashboardAdmin />} />
                 <Route path="/dietitian-dashboard" element={<DietitianDashboard />} />
                 <Route path="/dietitian/create-plan/:memberId" element={<CreateNutritionPlan />} />
                 <Route path="/dietitian/edit-plan/:planId" element={<EditNutritionPlan />} />
@@ -70,8 +71,7 @@ const App = () => (
                 {/* AI Sayfaları */}
                 <Route path="/calorie-calculator" element={<CalorieCalculator />} />
                 <Route path="/dietitian/calorie-calculator/:memberId" element={<CalorieCalculator />} />
-                <Route path="/dietitian/daily-report" element={<DailyReport />} />
-                <Route path="/dietitian/agentic-ai" element={<AgenticDashboard />} />
+                <Route path="/dietitian/agentic-ai" element={<AgenticDashboardDietitian />} />
                 <Route path="/dietitian/detailed-calorie-calculator" element={<DetailedCalorieCalculator />} />
                 {/* Yasal Sayfalar */}
                 <Route path="/terms" element={<TermsOfService />} />
@@ -95,4 +95,3 @@ const App = () => (
 );
 
 export default App;
-

@@ -48,7 +48,7 @@ class Member(User):
     height: Optional[float] = None  # cm
     weight: Optional[float] = None  # kg
     target_weight: Optional[float] = None  # kg
-    birth_date: Optional[date] = None
+    birth_date: Optional[datetime] = None
     gender: Optional[Gender] = None
     activity_level: Optional[ActivityLevel] = None
     phone: Optional[str] = None

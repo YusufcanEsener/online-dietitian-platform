@@ -56,8 +56,8 @@ class NutritionPlan(Document):
     member_id: str
     title: str
     description: Optional[str] = None
-    start_date: date
-    end_date: Optional[date] = None
+    start_date: datetime
+    end_date: Optional[datetime] = None
     is_active: bool = True
     daily_targets: DailyTargets = Field(default_factory=DailyTargets)
     meals: List[Meal] = []

@@ -103,16 +103,7 @@ const DietitianDashboard = () => {
                             <p className="text-muted-foreground mt-1">
                                 Danışanlarınızı ve beslenme programlarını yönetin
                             </p>
-                            <div className="flex items-center gap-3">
-                                <Button
-                                    variant="outline"
-                                    onClick={() => navigate("/dietitian/daily-report")}
-                                    className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 border-purple-500/30 hover:from-purple-500/20 hover:to-pink-500/20"
-                                >
-                                    <Sparkles className="w-4 h-4 mr-2 text-purple-500" />
-                                    Günlük AI Raporu
-                                </Button>
-                            </div>
+
                         </div>
                     </header>
 

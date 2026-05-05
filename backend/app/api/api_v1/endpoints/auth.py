@@ -183,14 +183,15 @@ async def google_auth(request: GoogleAuthRequest) -> Any:
     Google OAuth ile giriş/kayıt.
     Google token'ı doğrulanır, kullanıcı varsa giriş yapar, yoksa yeni kullanıcı oluşturulur.
     """
-    import requests
+    import httpx
     
     # Google token'ı doğrula
     try:
         # Google'ın tokeninfo endpoint'ini kullan
-        google_response = requests.get(
-            f"https://oauth2.googleapis.com/tokeninfo?id_token={request.token}"
-        )
+        async with httpx.AsyncClient() as client:
+            google_response = await client.get(
+                f"https://oauth2.googleapis.com/tokeninfo?id_token={request.token}"
+            )
         
         if google_response.status_code != 200:
             raise HTTPException(status_code=400, detail="Geçersiz Google token")
@@ -208,7 +209,7 @@ async def google_auth(request: GoogleAuthRequest) -> Any:
         if not email:
             raise HTTPException(status_code=400, detail="Google hesabında e-posta bulunamadı")
         
-    except requests.RequestException:
+    except httpx.RequestError:
         raise HTTPException(status_code=400, detail="Google token doğrulaması başarısız")
     
     # Kullanıcıyı e-posta ile ara

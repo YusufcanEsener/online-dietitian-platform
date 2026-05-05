@@ -36,7 +36,6 @@ const dietitianMenuItems = [
   { icon: MessageSquare, label: "Mesajlar", path: "/messages" },
   { icon: Newspaper, label: "Haberler", path: "/dietitian/news" },
   { icon: Zap, label: "Agentic AI", path: "/dietitian/agentic-ai" },
-  { icon: Sparkles, label: "Günlük Rapor", path: "/dietitian/daily-report" },
   { icon: Flame, label: "Detaylı Kalori", path: "/dietitian/detailed-calorie-calculator" },
   { icon: User, label: "Profilim", path: "/profile" },
   { icon: Settings, label: "Ayarlar", path: "/settings" },

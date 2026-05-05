@@ -101,6 +101,10 @@ async def ingest_news(
             detail="Geçersiz ya da eksik servis anahtarı.",
         )
 
+    # UTM ve query parametrelerini temizle, böylece aynı haber farklı parametrelerle kopya oluşturmaz
+    clean_link = payload.link.split('?')[0]
+    payload.link = clean_link
+
     # Duplicate kontrolü: aynı link varsa güncelle, yoksa ekle
     existing = await PubMedNews.find_one(PubMedNews.link == payload.link)
     if existing:

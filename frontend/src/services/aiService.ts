@@ -98,6 +98,9 @@ export interface GeneratePlanRequest {
     member_id: string;
     goal: 'weight_loss' | 'muscle_gain' | 'maintenance';
     target_calories: number;
+    protein?: number;
+    carbs?: number;
+    fat?: number;
     menu_type?: 'daily' | 'weekly';
     medications?: string;
     allergies?: string;

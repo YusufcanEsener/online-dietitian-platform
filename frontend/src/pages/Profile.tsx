@@ -121,6 +121,20 @@ const Profile = () => {
     return "-";
   };
 
+  const calculateAge = () => {
+    if (memberData?.birth_date) {
+      const birthDate = new Date(memberData.birth_date);
+      const today = new Date();
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const m = today.getMonth() - birthDate.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+      return age;
+    }
+    return null;
+  };
+
   if (authLoading || isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -219,6 +233,13 @@ const Profile = () => {
                 <span className="text-muted-foreground">Cinsiyet</span>
                 <span className="text-foreground font-medium">
                   {genderOptions.find(g => g.value === memberData?.gender)?.label || "-"}
+                </span>
+              </div>
+              <div className="flex justify-between items-center py-3 border-b border-border">
+                <span className="text-muted-foreground">Doğum Tarihi</span>
+                <span className="text-foreground font-medium">
+                  {memberData?.birth_date ? new Date(memberData.birth_date).toLocaleDateString('tr-TR') : "-"} 
+                  {calculateAge() !== null ? ` (${calculateAge()} Yaş)` : ""}
                 </span>
               </div>
               <div className="flex justify-between items-center py-3 border-b border-border">
