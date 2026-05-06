@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import {
     View,
     Text,
@@ -8,7 +8,6 @@ import {
     Alert,
     TextInput,
     ActivityIndicator,
-    Switch,
     StatusBar,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -22,7 +21,22 @@ import type { AuthStackParamList } from '../../navigation/AuthNavigator';
 
 type Nav = NativeStackNavigationProp<AuthStackParamList, 'Register'>;
 
-// ─── Yardımcı: Tek satırlık input ────────────────────────────────────────────
+// ─── Şifre Güçlülük ────────────────────────────────────────────────
+const getPasswordStrength = (password: string) => {
+    let score = 0;
+    if (password.length >= 8) score++;
+    if (password.length >= 12) score++;
+    if (/[a-z]/.test(password)) score++;
+    if (/[A-Z]/.test(password)) score++;
+    if (/[0-9]/.test(password)) score++;
+    if (/[^a-zA-Z0-9]/.test(password)) score++;
+
+    if (score <= 2) return { score, label: 'Zayıf', color: Colors.destructive };
+    if (score <= 4) return { score, label: 'Orta', color: '#f59e0b' };
+    return { score, label: 'Güçlü', color: '#22c55e' };
+};
+
+// ─── Field Component ────────────────────────────────────────────────
 interface FieldProps {
     label: string;
     value: string;
@@ -34,29 +48,26 @@ interface FieldProps {
     returnKeyType?: TextInput['props']['returnKeyType'];
     onSubmitEditing?: () => void;
     blurOnSubmit?: boolean;
-    innerRef?: React.RefObject<TextInput>;
+    innerRef?: React.RefObject<TextInput | null>;
     error?: string;
-    multiline?: boolean;
-    numberOfLines?: number;
 }
 
 const Field: React.FC<FieldProps> = ({
     label, value, onChangeText, placeholder, icon,
     isPassword, keyboardType = 'default', returnKeyType = 'next',
     onSubmitEditing, blurOnSubmit = false, innerRef, error,
-    multiline, numberOfLines,
 }) => {
     const [show, setShow] = useState(false);
     return (
         <View style={fStyles.block}>
             <Text style={fStyles.label}>{label}</Text>
-            <View style={[fStyles.row, error ? fStyles.errBorder : null, multiline ? { alignItems: 'flex-start' } : null]}>
+            <View style={[fStyles.row, error ? fStyles.errBorder : null]}>
                 {icon ? (
                     <Ionicons name={icon as any} size={16} color={Colors.mutedForeground} style={fStyles.icon} />
                 ) : null}
                 <TextInput
-                    ref={innerRef}
-                    style={[fStyles.input, multiline ? { height: numberOfLines ? numberOfLines * 22 : 66, textAlignVertical: 'top', paddingTop: Spacing.sm } : null]}
+                    ref={innerRef as any}
+                    style={fStyles.input}
                     value={value}
                     onChangeText={onChangeText}
                     placeholder={placeholder}
@@ -69,11 +80,9 @@ const Field: React.FC<FieldProps> = ({
                     onSubmitEditing={onSubmitEditing}
                     blurOnSubmit={blurOnSubmit}
                     selectionColor={Colors.primary}
-                    multiline={multiline}
-                    numberOfLines={numberOfLines}
                 />
                 {isPassword ? (
-                    <TouchableOpacity onPress={() => setShow(v => !v)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                    <TouchableOpacity onPress={() => setShow((v) => !v)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
                         <Ionicons name={show ? 'eye-off-outline' : 'eye-outline'} size={16} color={Colors.mutedForeground} style={fStyles.eyeBtn} />
                     </TouchableOpacity>
                 ) : null}
@@ -117,38 +126,40 @@ const fStyles = StyleSheet.create({
     },
 });
 
-// ─── Ana ekran ────────────────────────────────────────────────────────────────
+// ─── Ana Ekran ────────────────────────────────────────────────────────────────
 export default function RegisterScreen() {
     const navigation = useNavigation<Nav>();
-    const { register, registerDietitian } = useAuth();
+    const { register } = useAuth();
 
-    const [isDietitian, setIsDietitian] = useState(false);
     const [loading, setLoading] = useState(false);
 
-    const [fullName, setFullName] = useState('');
+    const [firstName, setFirstName] = useState('');
+    const [lastName, setLastName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [passwordConfirm, setPasswordConfirm] = useState('');
-    const [title, setTitle] = useState('');
-    const [specialization, setSpecialization] = useState('');
-    const [bio, setBio] = useState('');
-    const [experienceYears, setExperienceYears] = useState('');
 
     const [errors, setErrors] = useState<Record<string, string>>({});
 
     // Refs for focus chaining
+    const lastNameRef = useRef<TextInput>(null);
     const emailRef = useRef<TextInput>(null);
     const passwordRef = useRef<TextInput>(null);
     const passwordConfirmRef = useRef<TextInput>(null);
-    const titleRef = useRef<TextInput>(null);
-    const specRef = useRef<TextInput>(null);
-    const expRef = useRef<TextInput>(null);
+
+    // Şifre güçlülüğü
+    const passwordStrength = useMemo(() => getPasswordStrength(password), [password]);
+    const passwordsMatch = useMemo(() => {
+        if (!passwordConfirm) return null;
+        return password === passwordConfirm;
+    }, [password, passwordConfirm]);
 
     const validate = () => {
         const e: Record<string, string> = {};
-        if (!fullName.trim()) e.fullName = 'Ad Soyad gerekli';
+        if (!firstName.trim()) e.firstName = 'Ad gerekli';
+        if (!lastName.trim()) e.lastName = 'Soyad gerekli';
         if (!email.trim() || !/\S+@\S+\.\S+/.test(email)) e.email = 'Geçerli e-posta girin';
-        if (!password || password.length < 6) e.password = 'En az 6 karakter';
+        if (!password || password.length < 8) e.password = 'En az 8 karakter';
         if (password !== passwordConfirm) e.passwordConfirm = 'Şifreler eşleşmiyor';
         setErrors(e);
         return Object.keys(e).length === 0;
@@ -158,27 +169,11 @@ export default function RegisterScreen() {
         if (!validate()) return;
         setLoading(true);
         try {
-            if (isDietitian) {
-                await registerDietitian({
-                    email: email.trim(),
-                    password,
-                    full_name: fullName.trim(),
-                    title: title.trim() || undefined,
-                    specialization: specialization.trim() || undefined,
-                    bio: bio.trim() || undefined,
-                    experience_years: experienceYears ? parseInt(experienceYears) : undefined,
-                });
-                Alert.alert(
-                    'Başvurunuz Alındı',
-                    'Diyetisyen başvurunuz admin onayına gönderildi. Onay sonrası giriş yapabilirsiniz.',
-                    [{ text: 'Giriş Yap', onPress: () => navigation.navigate('Login') }]
-                );
-            } else {
-                await register(email.trim(), password, fullName.trim());
-                Alert.alert('Kayıt Başarılı', 'Hesabınız oluşturuldu. Şimdi giriş yapabilirsiniz.', [
-                    { text: 'Giriş Yap', onPress: () => navigation.navigate('Login') },
-                ]);
-            }
+            const fullName = `${firstName.trim()} ${lastName.trim()}`;
+            await register(email.trim(), password, fullName);
+            Alert.alert('Kayıt Başarılı', 'Hesabınız oluşturuldu. Şimdi giriş yapabilirsiniz.', [
+                { text: 'Giriş Yap', onPress: () => navigation.navigate('Login') },
+            ]);
         } catch (err: any) {
             const msg = err?.response?.data?.detail || 'Kayıt başarısız. Tekrar deneyin.';
             Alert.alert('Hata', msg);
@@ -208,122 +203,121 @@ export default function RegisterScreen() {
                             <Ionicons name="leaf" size={28} color={Colors.primaryForeground} />
                         </LinearGradient>
                         <Text style={styles.logoText}>Kayıt Ol</Text>
+                        <Text style={styles.tagline}>Sağlıklı yaşama başlayın</Text>
                     </View>
 
-                    {/* Kart */}
+                    {/* Form Kartı */}
                     <View style={styles.card}>
-
-                        {/* Tür Toggle */}
-                        <View style={styles.typeToggle}>
-                            <Text style={styles.typeLabel}>
-                                {isDietitian ? '🥗 Diyetisyen olarak kayıt' : '👤 Üye olarak kayıt'}
-                            </Text>
-                            <Switch
-                                value={isDietitian}
-                                onValueChange={setIsDietitian}
-                                trackColor={{ false: Colors.secondary, true: Colors.primary + '60' }}
-                                thumbColor={isDietitian ? Colors.primary : Colors.mutedForeground}
-                            />
-                        </View>
-
-                        {/* Ortak Alanlar */}
+                        {/* Ad Soyad */}
                         <Field
-                            label="Ad Soyad"
-                            value={fullName}
-                            onChangeText={(t) => { setFullName(t); setErrors(p => ({ ...p, fullName: '' })); }}
-                            placeholder="Adınız Soyadınız"
+                            label="Ad"
+                            value={firstName}
+                            onChangeText={(t) => { setFirstName(t); setErrors((p) => ({ ...p, firstName: '' })); }}
+                            placeholder="Adınız"
                             icon="person-outline"
                             returnKeyType="next"
-                            onSubmitEditing={() => emailRef.current?.focus()}
-                            error={errors.fullName}
+                            onSubmitEditing={() => (lastNameRef.current as any)?.focus()}
+                            error={errors.firstName}
+                        />
+                        <Field
+                            label="Soyad"
+                            value={lastName}
+                            onChangeText={(t) => { setLastName(t); setErrors((p) => ({ ...p, lastName: '' })); }}
+                            placeholder="Soyadınız"
+                            icon="person-outline"
+                            returnKeyType="next"
+                            onSubmitEditing={() => (emailRef.current as any)?.focus()}
+                            innerRef={lastNameRef}
+                            error={errors.lastName}
                         />
                         <Field
                             label="E-posta"
                             value={email}
-                            onChangeText={(t) => { setEmail(t); setErrors(p => ({ ...p, email: '' })); }}
+                            onChangeText={(t) => { setEmail(t); setErrors((p) => ({ ...p, email: '' })); }}
                             placeholder="ornek@mail.com"
                             icon="mail-outline"
                             keyboardType="email-address"
                             returnKeyType="next"
-                            onSubmitEditing={() => passwordRef.current?.focus()}
+                            onSubmitEditing={() => (passwordRef.current as any)?.focus()}
                             innerRef={emailRef}
                             error={errors.email}
                         />
                         <Field
                             label="Şifre"
                             value={password}
-                            onChangeText={(t) => { setPassword(t); setErrors(p => ({ ...p, password: '' })); }}
-                            placeholder="En az 6 karakter"
+                            onChangeText={(t) => { setPassword(t); setErrors((p) => ({ ...p, password: '' })); }}
+                            placeholder="En az 8 karakter"
                             icon="lock-closed-outline"
                             isPassword
                             returnKeyType="next"
-                            onSubmitEditing={() => passwordConfirmRef.current?.focus()}
+                            onSubmitEditing={() => (passwordConfirmRef.current as any)?.focus()}
                             innerRef={passwordRef}
                             error={errors.password}
                         />
+
+                        {/* Şifre Güçlülük Bar */}
+                        {password.length > 0 && (
+                            <View style={styles.strengthSection}>
+                                <View style={styles.strengthHeader}>
+                                    <Text style={styles.strengthLabel}>Şifre Güçlülüğü:</Text>
+                                    <Text style={[styles.strengthValue, { color: passwordStrength.color }]}>
+                                        {passwordStrength.label}
+                                    </Text>
+                                </View>
+                                <View style={styles.strengthBarBg}>
+                                    <View
+                                        style={[
+                                            styles.strengthBarFill,
+                                            {
+                                                width: `${(passwordStrength.score / 6) * 100}%`,
+                                                backgroundColor: passwordStrength.color,
+                                            },
+                                        ]}
+                                    />
+                                </View>
+                                <View style={styles.strengthChecks}>
+                                    {[
+                                        { check: password.length >= 8, text: 'En az 8 karakter' },
+                                        { check: /[A-Z]/.test(password), text: 'Büyük harf' },
+                                        { check: /[0-9]/.test(password), text: 'Rakam' },
+                                        { check: /[^a-zA-Z0-9]/.test(password), text: 'Özel karakter' },
+                                    ].map((item, i) => (
+                                        <View key={i} style={styles.strengthCheckRow}>
+                                            <Ionicons
+                                                name={item.check ? 'checkmark-circle' : 'close-circle'}
+                                                size={13}
+                                                color={item.check ? '#22c55e' : Colors.destructive}
+                                            />
+                                            <Text style={styles.strengthCheckText}>{item.text}</Text>
+                                        </View>
+                                    ))}
+                                </View>
+                            </View>
+                        )}
+
                         <Field
                             label="Şifre Tekrar"
                             value={passwordConfirm}
-                            onChangeText={(t) => { setPasswordConfirm(t); setErrors(p => ({ ...p, passwordConfirm: '' })); }}
+                            onChangeText={(t) => { setPasswordConfirm(t); setErrors((p) => ({ ...p, passwordConfirm: '' })); }}
                             placeholder="Şifrenizi tekrar girin"
                             icon="lock-closed-outline"
                             isPassword
-                            returnKeyType={isDietitian ? 'next' : 'done'}
-                            onSubmitEditing={isDietitian ? () => titleRef.current?.focus() : handleRegister}
-                            blurOnSubmit={!isDietitian}
+                            returnKeyType="done"
+                            onSubmitEditing={handleRegister}
+                            blurOnSubmit
                             innerRef={passwordConfirmRef}
                             error={errors.passwordConfirm}
                         />
 
-                        {/* Diyetisyen Ek Alanları */}
-                        {isDietitian && (
-                            <>
-                                <View style={styles.sectionDivider}>
-                                    <Text style={styles.sectionTitle}>Profesyonel Bilgiler</Text>
-                                </View>
-                                <Field
-                                    label="Unvan"
-                                    value={title}
-                                    onChangeText={setTitle}
-                                    placeholder="Dr., Uzm. vb."
-                                    icon="medal-outline"
-                                    returnKeyType="next"
-                                    onSubmitEditing={() => specRef.current?.focus()}
-                                    innerRef={titleRef}
-                                />
-                                <Field
-                                    label="Uzmanlık Alanı"
-                                    value={specialization}
-                                    onChangeText={setSpecialization}
-                                    placeholder="Sporcu beslenmesi, obezite..."
-                                    icon="ribbon-outline"
-                                    returnKeyType="next"
-                                    onSubmitEditing={() => expRef.current?.focus()}
-                                    innerRef={specRef}
-                                />
-                                <Field
-                                    label="Deneyim (Yıl)"
-                                    value={experienceYears}
-                                    onChangeText={setExperienceYears}
-                                    placeholder="5"
-                                    icon="time-outline"
-                                    keyboardType="numeric"
-                                    returnKeyType="next"
-                                    onSubmitEditing={() => expRef.current?.blur()}
-                                    innerRef={expRef}
-                                />
-                                <Field
-                                    label="Biyografi"
-                                    value={bio}
-                                    onChangeText={setBio}
-                                    placeholder="Kendinizden kısaca bahsedin..."
-                                    icon="document-text-outline"
-                                    multiline
-                                    numberOfLines={3}
-                                    returnKeyType="done"
-                                    blurOnSubmit
-                                />
-                            </>
+                        {/* Şifre eşleşme */}
+                        {passwordsMatch === false && (
+                            <Text style={styles.matchError}>Şifreler eşleşmiyor</Text>
+                        )}
+                        {passwordsMatch === true && (
+                            <View style={styles.matchRow}>
+                                <Ionicons name="checkmark-circle" size={13} color="#22c55e" />
+                                <Text style={styles.matchOk}>Şifreler eşleşiyor</Text>
+                            </View>
                         )}
 
                         {/* Kayıt Butonu */}
@@ -336,7 +330,7 @@ export default function RegisterScreen() {
                             <LinearGradient colors={Gradients.primary} style={styles.btnGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
                                 {loading
                                     ? <ActivityIndicator color={Colors.primaryForeground} />
-                                    : <Text style={styles.btnText}>{isDietitian ? 'Başvuru Gönder' : 'Hesap Oluştur'}</Text>
+                                    : <Text style={styles.btnText}>Hesap Oluştur</Text>
                                 }
                             </LinearGradient>
                         </TouchableOpacity>
@@ -381,6 +375,10 @@ const styles = StyleSheet.create({
         fontWeight: '800',
         color: Colors.foreground,
     },
+    tagline: {
+        fontSize: Typography.size.sm,
+        color: Colors.mutedForeground,
+    },
     card: {
         backgroundColor: Colors.card,
         borderRadius: Radius['2xl'],
@@ -388,35 +386,48 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: Colors.border,
     },
-    typeToggle: {
+
+    // Password Strength
+    strengthSection: {
+        marginBottom: Spacing.md,
+        gap: 6,
+    },
+    strengthHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        alignItems: 'center',
+    },
+    strengthLabel: { fontSize: Typography.size.xs, color: Colors.mutedForeground },
+    strengthValue: { fontSize: Typography.size.xs, fontWeight: '600' },
+    strengthBarBg: {
+        height: 5,
         backgroundColor: Colors.surface,
-        borderRadius: Radius.lg,
-        padding: Spacing.md,
-        marginBottom: Spacing.xl,
+        borderRadius: Radius.full,
+        overflow: 'hidden',
     },
-    typeLabel: {
-        fontSize: Typography.size.base,
-        fontWeight: '600',
-        color: Colors.foreground,
-        flex: 1,
-        marginRight: Spacing.sm,
+    strengthBarFill: {
+        height: '100%',
+        borderRadius: Radius.full,
     },
-    sectionDivider: {
-        borderTopWidth: 1,
-        borderTopColor: Colors.border,
-        paddingTop: Spacing.md,
-        marginBottom: Spacing.md,
+    strengthChecks: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: Spacing.sm,
+        marginTop: 4,
     },
-    sectionTitle: {
-        fontSize: Typography.size.sm,
-        fontWeight: '700',
-        color: Colors.primary,
-        textTransform: 'uppercase',
-        letterSpacing: 1,
+    strengthCheckRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 3,
+        width: '45%',
     },
+    strengthCheckText: { fontSize: 10, color: Colors.mutedForeground },
+
+    // Match
+    matchError: { fontSize: Typography.size.xs, color: Colors.destructive, marginBottom: Spacing.sm },
+    matchRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: Spacing.sm },
+    matchOk: { fontSize: Typography.size.xs, color: '#22c55e' },
+
+    // Button
     btn: {
         borderRadius: Radius.lg,
         overflow: 'hidden',

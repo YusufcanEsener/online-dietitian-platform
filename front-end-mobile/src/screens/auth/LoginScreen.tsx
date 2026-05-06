@@ -26,7 +26,7 @@ type Nav = NativeStackNavigationProp<AuthStackParamList, 'Login'>;
 
 export default function LoginScreen() {
     const navigation = useNavigation<Nav>();
-    const { login } = useAuth();
+    const { login, logout } = useAuth();
     const passwordRef = useRef<TextInput>(null);
 
     const [email, setEmail] = useState('');
@@ -34,6 +34,7 @@ export default function LoginScreen() {
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+    const [approvalMessage, setApprovalMessage] = useState<string | null>(null);
 
     const validate = () => {
         const e: typeof errors = {};
@@ -48,8 +49,23 @@ export default function LoginScreen() {
         Keyboard.dismiss();
         if (!validate()) return;
         setLoading(true);
+        setApprovalMessage(null);
         try {
             await login(email.trim(), password);
+            // Login başarılı — diyetisyen onay kontrolü yapılacak
+            // AuthContext zaten user'ı set etti, ama onay kontrolü için
+            // storage'dan kontrol ediyoruz
+            const { getUser } = await import('../../utils/storage');
+            const userData = await getUser();
+            if (userData?.role === 'dietitian' && userData?.is_approved === false) {
+                // Onaylanmamış diyetisyen - çıkış yaptır
+                const { logout: doLogout } = { logout };
+                await doLogout();
+                setApprovalMessage(
+                    'Diyetisyen hesabınız henüz onaylanmadı. Onay işlemi tamamlandığında giriş yapabilirsiniz.'
+                );
+                return;
+            }
         } catch (err: any) {
             const detail = err?.response?.data?.detail;
             let msg = 'Giriş başarısız. Bilgilerinizi kontrol edin.';
@@ -80,6 +96,17 @@ export default function LoginScreen() {
                         <Text style={styles.logoText}>DietPlatform</Text>
                         <Text style={styles.tagline}>Sağlıklı yaşamın dijital adresi</Text>
                     </View>
+
+                    {/* Onay Mesajı */}
+                    {approvalMessage && (
+                        <View style={styles.approvalBanner}>
+                            <Ionicons name="alert-circle" size={20} color="#f59e0b" />
+                            <View style={{ flex: 1 }}>
+                                <Text style={styles.approvalTitle}>Diyetisyen onayı bekleniyor</Text>
+                                <Text style={styles.approvalText}>{approvalMessage}</Text>
+                            </View>
+                        </View>
+                    )}
 
                     {/* Form Kartı */}
                     <View style={styles.card}>
@@ -290,5 +317,27 @@ const styles = StyleSheet.create({
     linkHighlight: {
         color: Colors.primary,
         fontWeight: '700',
+    },
+    approvalBanner: {
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+        gap: Spacing.md,
+        backgroundColor: '#f59e0b15',
+        borderRadius: Radius['2xl'],
+        borderWidth: 1,
+        borderColor: '#f59e0b30',
+        padding: Spacing.base,
+        marginBottom: Spacing.lg,
+    },
+    approvalTitle: {
+        fontSize: Typography.size.sm,
+        fontWeight: '700',
+        color: '#f59e0b',
+        marginBottom: 4,
+    },
+    approvalText: {
+        fontSize: Typography.size.xs,
+        color: Colors.mutedForeground,
+        lineHeight: 18,
     },
 });

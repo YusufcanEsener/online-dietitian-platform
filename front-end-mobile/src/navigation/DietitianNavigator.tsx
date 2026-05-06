@@ -16,11 +16,12 @@ import AgenticAIScreen from '../screens/dietitian/AgenticAIScreen';
 import DailyReportScreen from '../screens/dietitian/DailyReportScreen';
 import DietitianProfileScreen from '../screens/dietitian/ProfileScreen';
 import DietitianNotificationsScreen from '../screens/dietitian/NotificationsScreen';
+import NewsScreen from '../screens/dietitian/NewsScreen';
 
 export type DietitianTabParamList = {
     DashboardTab: undefined;
     MembersTab: undefined;
-    NotificationsTab: undefined;
+    NewsTab: undefined;
     AITab: undefined;
     DietitianProfile: undefined;
 };
@@ -32,6 +33,7 @@ export type DietitianStackParamList = {
     ChatDetail: { chatId: string; participantName: string };
     DailyReport: undefined;
     DietitianMessages: undefined;
+    DietitianNotifications: undefined;
 };
 
 const Tab = createBottomTabNavigator<DietitianTabParamList>();
@@ -58,7 +60,7 @@ function DietitianTabs() {
                     const icons: Record<string, string> = {
                         DashboardTab: 'grid',
                         MembersTab: 'people',
-                        NotificationsTab: 'notifications',
+                        NewsTab: 'newspaper',
                         AITab: 'sparkles',
                         DietitianProfile: 'person',
                     };
@@ -74,11 +76,7 @@ function DietitianTabs() {
         >
             <Tab.Screen name="DashboardTab" component={DietitianDashboardScreen} options={{ title: 'Panel' }} />
             <Tab.Screen name="MembersTab" component={DietitianMembersScreen} options={{ title: 'Danışanlar' }} />
-            <Tab.Screen
-                name="NotificationsTab"
-                component={DietitianNotificationsScreen}
-                options={{ title: 'Bildirimler' }}
-            />
+            <Tab.Screen name="NewsTab" component={NewsScreen} options={{ title: 'Haberler' }} />
             <Tab.Screen name="AITab" component={AgenticAIScreen} options={{ title: 'AI Asistan' }} />
             <Tab.Screen name="DietitianProfile" component={DietitianProfileScreen} options={{ title: 'Profil' }} />
         </Tab.Navigator>
@@ -94,6 +92,7 @@ export default function DietitianNavigator() {
             <Stack.Screen name="ChatDetail" component={DietitianChatDetailScreen} />
             <Stack.Screen name="DailyReport" component={DailyReportScreen} />
             <Stack.Screen name="DietitianMessages" component={DietitianMessagesScreen} />
+            <Stack.Screen name="DietitianNotifications" component={DietitianNotificationsScreen} />
         </Stack.Navigator>
     );
 }
