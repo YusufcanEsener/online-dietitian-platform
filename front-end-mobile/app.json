@@ -39,7 +39,7 @@
       "expo-asset"
     ],
     "extra": {
-      "apiUrl": "http://SUNUCU_IP:8000/api/v1"
+      "apiUrl": "http://demo.yusufcanesener.com/api/v1"
     }
   }
 }
